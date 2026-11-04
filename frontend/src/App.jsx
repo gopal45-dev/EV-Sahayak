@@ -20,7 +20,7 @@ const VEHICLES_STORAGE_KEY = 'ev_sahayak_user_vehicles';
 const THEME_STORAGE_KEY = 'ev_sahayak_theme';
 const LANGUAGE_STORAGE_KEY = 'ev_sahayak_language';
 
-const VALID_TABS = ['dashboard', 'emergency', 'charging', 'helper', 'profile'];
+const VALID_TABS = ['dashboard', 'emergency', 'charging', 'helper', 'profile', 'admin'];
 
 const getStoredLanguage = () => {
   try {
@@ -353,13 +353,14 @@ export default function App() {
   }
 
   // 2. Admin Role: If admin logged in (guptagopaldilipd@gmail.com), render dedicated Admin Workspace
-  if (currentUser.role === 'ADMIN') {
+  if (currentUser.role === 'ADMIN' && activeTab === 'admin') {
     return (
       <AdminWorkspace
         adminUser={currentUser}
         onLogout={handleLogout}
         stations={stations}
         helpers={helpers}
+        onSwitchToRider={() => handleTabChange('dashboard')}
       />
     );
   }

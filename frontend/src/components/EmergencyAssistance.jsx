@@ -1,12 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { 
   AlertCircle, BatteryCharging, Zap, ShieldCheck, Clock, MapPin, 
-  Phone, CheckCircle2, Lock, Unlock, ArrowRight, MessageSquare, RefreshCw, Navigation, Star, Radio, Activity, Compass 
+  Phone, CheckCircle2, Lock, Unlock, ArrowRight, MessageSquare, RefreshCw, Navigation, Star, Radio, Activity, Compass, Bell, BellRing 
 } from 'lucide-react';
 import RazorpayModal from './RazorpayModal';
+import { 
+  requestNotificationPermission, 
+  getNotificationPermission, 
+  notifyHelperOfIncomingRescue, 
+  notifyRiderOfHelperEnRoute 
+} from '../utils/notifications';
 
 export default function EmergencyAssistance({ vehicles = [], onUnlockContact, currentUser, onNavigateToGarage }) {
   const [step, setStep] = useState(1); // 1: Form, 2: Provider Readiness & Candidates, 3: Unlocked Details
+  const [notifPermission, setNotifPermission] = useState(() => getNotificationPermission());
 
   // Selected vehicle & options
   const [selectedVehicleId, setSelectedVehicleId] = useState(vehicles[0]?.id || '');
@@ -151,7 +158,23 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
       if (onNavigateToGarage) onNavigateToGarage();
       return;
     }
+
+    // Request notification permission if not yet decided
+    if (notifPermission === 'default') {
+      const perm = await requestNotificationPermission();
+      setNotifPermission(perm);
+    }
+
     setIsSearching(true);
+
+    // Alert simulated nearby helpers through Web Notifications
+    notifyHelperOfIncomingRescue({
+      locationName: liveLocation.address,
+      vehicleBrand: selectedVehicle.brand,
+      vehicleModel: selectedVehicle.modelName,
+      serviceType: assistanceMode,
+      payoutAmount: assistanceMode === 'BATTERY_SWAP' ? 199 : 249
+    });
 
     try {
       const res = await fetch('http://localhost:5000/api/requests', {
@@ -228,6 +251,11 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
         setUnlockedEntitlement(data.entitlement);
         setStep(3);
         if (onUnlockContact) onUnlockContact(data.entitlement);
+        notifyRiderOfHelperEnRoute({
+          helperName: selectedCandidate?.providerName || 'Ramesh Kumar',
+          etaMinutes: selectedCandidate?.etaMinutes || 6,
+          distanceKm: selectedCandidate?.distanceKm || 1.4
+        });
       } else {
         throw new Error(data.message);
       }
@@ -243,6 +271,11 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
       };
       setUnlockedEntitlement(fallbackEntitlement);
       setStep(3);
+      notifyRiderOfHelperEnRoute({
+        helperName: selectedCandidate?.providerName || 'Ramesh Kumar',
+        etaMinutes: selectedCandidate?.etaMinutes || 6,
+        distanceKm: selectedCandidate?.distanceKm || 1.4
+      });
     }
   };
 
@@ -265,6 +298,46 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
       {/* STEP 1: CONFIGURE RESCUE */}
       {step === 1 && (
         <div className="pro-card" style={{ padding: '28px' }}>
+          {/* Helper Dispatch Notification Permission Banner */}
+          {notifPermission !== 'granted' && (
+            <div style={{
+              background: 'rgba(37, 99, 235, 0.08)',
+              border: '1px solid rgba(37, 99, 235, 0.25)',
+              borderRadius: '12px',
+              padding: '12px 16px',
+              marginBottom: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '12px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Bell size={18} color="#38bdf8" />
+                <div>
+                  <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#ffffff' }}>
+                    Enable Push Notifications for Real-Time Dispatch
+                  </div>
+                  <div style={{ fontSize: '0.74rem', color: '#94a3b8' }}>
+                    Alert nearby helpers immediately and receive live arrival pings on your screen.
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={async () => {
+                  const perm = await requestNotificationPermission();
+                  setNotifPermission(perm);
+                }}
+                className="btn-primary"
+                style={{ padding: '6px 14px', fontSize: '0.78rem' }}
+              >
+                <BellRing size={13} />
+                <span>Allow Notifications</span>
+              </button>
+            </div>
+          )}
+
           <form onSubmit={handleInitiateRequest} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             
             {/* 1. Vehicle Selection */}

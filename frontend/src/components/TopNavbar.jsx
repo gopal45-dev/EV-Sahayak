@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Sun, Moon, Bell, Globe, Check, X, Shield, ChevronDown } from 'lucide-react';
+import { Search, Sun, Moon, Bell, Globe, Check, X, Shield, ChevronDown, ShieldCheck } from 'lucide-react';
 import { translations } from '../translations';
 
 export default function TopNavbar({ 
@@ -286,6 +286,30 @@ export default function TopNavbar({
           >
             {isRoyal ? <Moon size={16} color="#1d4ed8" /> : <Sun size={16} color="#fbbf24" />}
             <span style={{ display: 'none', sm: 'inline' }}>{isRoyal ? 'Royal' : 'Dark'}</span>
+          </button>
+        )}
+
+        {/* Admin Console Switcher (visible for ADMIN users) */}
+        {currentUser?.role === 'ADMIN' && (
+          <button
+            onClick={() => onNavigate('admin')}
+            style={{
+              background: '#f59e0b',
+              color: '#000000',
+              border: 'none',
+              borderRadius: '10px',
+              padding: '6px 12px',
+              fontSize: '0.78rem',
+              fontWeight: 800,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+            title="Open Admin Command Center"
+          >
+            <ShieldCheck size={14} />
+            <span>Admin</span>
           </button>
         )}
 
