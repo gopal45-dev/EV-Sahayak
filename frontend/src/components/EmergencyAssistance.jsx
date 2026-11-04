@@ -678,6 +678,24 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
             </div>
           </div>
 
+          {/* Strict Single-Rescuer Mutual Exclusivity Policy Banner */}
+          <div style={{
+            background: 'rgba(0, 210, 147, 0.08)',
+            border: '1px solid rgba(0, 210, 147, 0.25)',
+            borderRadius: '10px',
+            padding: '10px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            fontSize: '0.78rem',
+            color: '#00d293'
+          }}>
+            <ShieldCheck size={18} />
+            <span>
+              <b>Strict Single-Rescuer Guarantee:</b> Once accepted, this rescue request is exclusively locked to 1 helper. No other helper can accept or dispatch to your breakdown.
+            </span>
+          </div>
+
           {/* Candidate Card */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
             {activeRequest.candidateResponses?.map(candidate => {

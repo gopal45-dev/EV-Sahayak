@@ -2,7 +2,38 @@ import express from 'express';
 import { providers } from './providers.js';
 
 const router = express.Router();
-let helpRequests = [];
+
+// Initial active requests list for demonstration and testing
+let helpRequests = [
+  {
+    id: 'req_1081',
+    userName: 'Kavita Menon (Ather 450X)',
+    userPhone: '+91 98450 11223',
+    vehicle: { brand: 'Ather', modelName: '450X Gen 3', connectorType: 'ATHER_PROPRIETARY', batteryRemainingPercent: 6 },
+    requestedService: 'PORTABLE_CHARGER',
+    locationAddress: '100 Feet Rd, Indiranagar (Near Metro)',
+    distanceKm: 1.4,
+    proposedPrice: 249,
+    status: 'SEARCHING',
+    selectedProviderId: null,
+    assignedProviderName: null,
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'req_1082',
+    userName: 'Anirudh S. (Hero Vida V1)',
+    userPhone: '+91 97412 88990',
+    vehicle: { brand: 'Hero Vida', modelName: 'V1 Pro', connectorType: 'VIDA_MODULAR', hasSwappableBattery: true, batteryRemainingPercent: 3 },
+    requestedService: 'BATTERY_SWAP',
+    locationAddress: 'Old Airport Road, Domlur Flyover',
+    distanceKm: 3.2,
+    proposedPrice: 199,
+    status: 'SEARCHING',
+    selectedProviderId: null,
+    assignedProviderName: null,
+    createdAt: new Date().toISOString()
+  }
+];
 
 // Haversine formula to calculate distance in km between two GPS coordinates
 function calculateDistanceKm(lat1, lon1, lat2, lon2) {
@@ -16,6 +47,11 @@ function calculateDistanceKm(lat1, lon1, lat2, lon2) {
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return Math.round(R * c * 10) / 10;
 }
+
+// GET /api/requests - Get all active help requests
+router.get('/', (req, res) => {
+  res.json({ success: true, requests: helpRequests });
+});
 
 // POST /api/requests - Create an emergency assistance request
 router.post('/', (req, res) => {
@@ -82,13 +118,13 @@ router.post('/', (req, res) => {
       completedRescues: p.completedRescues,
       serviceOffered: applicableService.serviceType,
       serviceTitle: applicableService.title,
-      confirmedPrice: applicableService.estimatedServicePrice, // Helper's on-site service charge
+      confirmedPrice: applicableService.estimatedServicePrice,
       etaMinutes: etaMinutes,
-      status: 'ACCEPTED',
+      status: 'AVAILABLE_TO_ACCEPT',
       confirmedAt: new Date(now).toISOString(),
       expiresAt: expiresAt
     };
-  }).sort((a, b) => a.distanceKm - b.distanceKm); // Sort by nearest live distance!
+  }).sort((a, b) => a.distanceKm - b.distanceKm);
 
   const newRequest = {
     id: reqId,
@@ -109,6 +145,7 @@ router.post('/', (req, res) => {
     status: candidateResponses.length > 0 ? 'MATCHED_PENDING_UNLOCK' : 'SEARCHING',
     candidateResponses,
     selectedProviderId: null,
+    assignedProviderName: null,
     contactUnlocked: false,
     createdAt: new Date(now).toISOString(),
     expiresAt: expiresAt
@@ -122,6 +159,70 @@ router.post('/', (req, res) => {
       ? `Found ${candidateResponses.length} verified helper(s) ready with ${requestedService.replace('_', ' ').toLowerCase()}!`
       : 'Searching for nearby available helpers. You will receive real-time notifications.',
     request: newRequest
+  });
+});
+
+// POST /api/requests/:id/accept - Exclusive Acceptance & Concurrency Lock
+// Guarantees: If one helper accepts, NO other helper can accept the same request!
+router.post('/:id/accept', (req, res) => {
+  const { providerId, providerName } = req.body;
+  const request = helpRequests.find(r => r.id === req.params.id);
+
+  if (!request) {
+    return res.status(404).json({ success: false, message: 'Rescue request not found or has expired.' });
+  }
+
+  // MUTUAL EXCLUSIVITY CHECK:
+  // If already locked to another provider
+  if (request.selectedProviderId && request.selectedProviderId !== providerId) {
+    return res.status(409).json({
+      success: false,
+      code: 'ALREADY_ASSIGNED',
+      message: `This rescue request has already been accepted exclusively by another rescuer (${request.assignedProviderName || 'Nearby Helper'}). Only one helper can be assigned per stranded rider.`,
+      assignedTo: request.assignedProviderName,
+      assignedAt: request.lockedAt
+    });
+  }
+
+  // Atomically lock exclusively to this helper
+  request.status = 'ASSIGNED';
+  request.selectedProviderId = providerId || 'prov_demo';
+  request.assignedProviderName = providerName || 'QuickEV Assist Rescuer';
+  request.lockedAt = new Date().toISOString();
+
+  // Update candidates list: mark this candidate as ACCEPTED, and others as LOCKED_OUT
+  if (request.candidateResponses) {
+    request.candidateResponses = request.candidateResponses.map(c => {
+      if (c.providerId === providerId) {
+        return { ...c, status: 'ACCEPTED_BY_YOU' };
+      }
+      return { ...c, status: 'LOCKED_OUT', lockedOutReason: 'Accepted by another rescuer' };
+    });
+  }
+
+  res.json({
+    success: true,
+    message: 'Rescue request locked exclusively to you! No other helper can take this request.',
+    request
+  });
+});
+
+// POST /api/requests/:id/decline - Decline request
+router.post('/:id/decline', (req, res) => {
+  const { providerId } = req.body;
+  const request = helpRequests.find(r => r.id === req.params.id);
+
+  if (!request) {
+    return res.status(404).json({ success: false, message: 'Request not found.' });
+  }
+
+  if (!request.declinedProviderIds) request.declinedProviderIds = [];
+  if (providerId) request.declinedProviderIds.push(providerId);
+
+  res.json({
+    success: true,
+    message: 'You have declined this request. It remains open for other nearby rescuers.',
+    request
   });
 });
 

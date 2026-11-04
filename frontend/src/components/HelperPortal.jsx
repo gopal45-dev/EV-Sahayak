@@ -56,20 +56,83 @@ export default function HelperPortal({ helpers = [], onRegisterHelper, onToggleS
     }
   ]);
 
-  const handleRequestResponse = (requestId, action) => {
-    setIncomingRequests(prev => prev.map(req => {
-      if (req.id === requestId) {
-        return {
-          ...req,
-          status: action === 'ACCEPT' ? 'ACCEPTED' : 'DECLINED',
-          confirmedAt: new Date().toLocaleTimeString()
-        };
-      }
-      return req;
-    }));
-
+  const handleRequestResponse = async (requestId, action) => {
     if (action === 'ACCEPT') {
-      alert('Readiness confirmed! Your arrival confirmation and price lock have been timestamped.');
+      try {
+        const res = await fetch(`http://localhost:5000/api/requests/${requestId}/accept`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            providerId: myHelperProfile?.id || 'prov_my_account',
+            providerName: myHelperProfile?.displayName || currentUser?.name || 'QuickEV Assist Rescuer'
+          })
+        });
+        const data = await res.json();
+
+        // Single Rescuer Mutual Exclusivity Check
+        if (!data.success && data.code === 'ALREADY_ASSIGNED') {
+          alert(`⚠️ Rescue Request Already Locked!\n\nThis rescue request was already accepted by ${data.assignedTo || 'another nearby helper'}.\n\nIn accordance with EV Sahayak's strict single-rescuer protocol, multiple helpers cannot accept the same stranded rider.`);
+          setIncomingRequests(prev => prev.map(req => {
+            if (req.id === requestId) {
+              return {
+                ...req,
+                status: 'ALREADY_ACCEPTED_BY_OTHER',
+                lockedBy: data.assignedTo || 'Another Rescuer'
+              };
+            }
+            return req;
+          }));
+          return;
+        }
+
+        // Successfully locked exclusively to this helper!
+        setIncomingRequests(prev => prev.map(req => {
+          if (req.id === requestId) {
+            return {
+              ...req,
+              status: 'ACCEPTED',
+              confirmedAt: new Date().toLocaleTimeString(),
+              exclusiveLock: true
+            };
+          }
+          return req;
+        }));
+
+        alert('🔒 Exclusive Lock Acquired!\n\nYou have accepted this rescue request. It is now locked exclusively to you — no other helper can take or accept this job.');
+      } catch (err) {
+        // Fallback local exclusive locking
+        setIncomingRequests(prev => prev.map(req => {
+          if (req.id === requestId) {
+            return {
+              ...req,
+              status: 'ACCEPTED',
+              confirmedAt: new Date().toLocaleTimeString(),
+              exclusiveLock: true
+            };
+          }
+          return req;
+        }));
+        alert('Readiness confirmed! Request locked exclusively to you.');
+      }
+    } else {
+      // DECLINE ACTION
+      try {
+        await fetch(`http://localhost:5000/api/requests/${requestId}/decline`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ providerId: myHelperProfile?.id || 'prov_my_account' })
+        });
+      } catch (e) {}
+
+      setIncomingRequests(prev => prev.map(req => {
+        if (req.id === requestId) {
+          return {
+            ...req,
+            status: 'DECLINED'
+          };
+        }
+        return req;
+      }));
     }
   };
 
@@ -322,8 +385,8 @@ export default function HelperPortal({ helpers = [], onRegisterHelper, onToggleS
                     <h4 style={{ fontSize: '1.05rem', color: '#ffffff' }}>{req.riderName}</h4>
                     <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>{req.vehicle}</span>
                   </div>
-                  <span className={`badge-clean ${req.status === 'ACCEPTED' ? 'badge-green' : (req.status === 'DECLINED' ? 'badge-amber' : 'badge-blue')}`}>
-                    {req.status}
+                  <span className={`badge-clean ${req.status === 'ACCEPTED' ? 'badge-green' : (req.status === 'ALREADY_ACCEPTED_BY_OTHER' ? 'badge-amber' : (req.status === 'DECLINED' ? 'badge-amber' : 'badge-blue'))}`}>
+                    {req.status === 'ALREADY_ACCEPTED_BY_OTHER' ? 'LOCKED OUT' : req.status}
                   </span>
                 </div>
 
@@ -342,7 +405,44 @@ export default function HelperPortal({ helpers = [], onRegisterHelper, onToggleS
                   </div>
                 </div>
 
-                {req.status === 'PENDING' ? (
+                {req.status === 'ALREADY_ACCEPTED_BY_OTHER' ? (
+                  <div style={{
+                    background: 'rgba(239, 68, 68, 0.08)',
+                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                    borderRadius: '8px',
+                    padding: '10px 14px',
+                    fontSize: '0.78rem',
+                    color: '#f87171',
+                    textAlign: 'center'
+                  }}>
+                    <div style={{ fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                      <Lock size={14} />
+                      <span>Job Locked to Another Helper</span>
+                    </div>
+                    <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '2px' }}>
+                      Accepted by {req.lockedBy || 'another nearby rescuer'}. Only 1 helper can take this job.
+                    </div>
+                  </div>
+                ) : req.status === 'ACCEPTED' ? (
+                  <div style={{
+                    background: 'rgba(0, 210, 147, 0.1)',
+                    border: '1px solid #00d293',
+                    borderRadius: '8px',
+                    padding: '10px 14px',
+                    fontSize: '0.78rem',
+                    color: '#00d293',
+                    textAlign: 'center'
+                  }}>
+                    <div style={{ fontWeight: 700 }}>Exclusive Lock Active</div>
+                    <div style={{ fontSize: '0.72rem', color: '#cbd5e1', marginTop: '2px' }}>
+                      Locked exclusively to you at {req.confirmedAt || 'just now'}. No other helper can take this job.
+                    </div>
+                  </div>
+                ) : req.status === 'DECLINED' ? (
+                  <div style={{ fontSize: '0.75rem', color: '#94a3b8', textAlign: 'center' }}>
+                    Request declined by you
+                  </div>
+                ) : (
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                     <button
                       onClick={() => handleRequestResponse(req.id, 'DECLINE')}
@@ -358,12 +458,8 @@ export default function HelperPortal({ helpers = [], onRegisterHelper, onToggleS
                       style={{ fontSize: '0.8rem', padding: '8px' }}
                     >
                       <Check size={14} />
-                      <span>Accept & Confirm</span>
+                      <span>Accept & Lock Job</span>
                     </button>
-                  </div>
-                ) : (
-                  <div style={{ fontSize: '0.75rem', color: '#94a3b8', textAlign: 'center' }}>
-                    Response logged at {req.confirmedAt || 'just now'}
                   </div>
                 )}
               </div>
