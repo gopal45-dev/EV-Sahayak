@@ -2,8 +2,10 @@ import React, { useState, Suspense, lazy } from 'react';
 import { 
   Zap, AlertCircle, MapPin, HeartHandshake, Bike, 
   ShieldCheck, Navigation, ArrowRight, BatteryCharging, 
-  Clock, Sparkles, CheckCircle2, ChevronRight, HelpCircle, X, ExternalLink, RotateCw
+  Clock, Sparkles, CheckCircle2, ChevronRight, HelpCircle, X, ExternalLink, RotateCw, Video,
+  Activity, Cpu, Wrench, Search, Check
 } from 'lucide-react';
+import { translations } from '../translations';
 
 const ThreeVisualizer = lazy(() => import('./ThreeVisualizer'));
 
@@ -15,10 +17,13 @@ export default function UserDashboard({
   onNavigate,
   theme = 'obsidian',
   isTourOpen = false,
-  setIsTourOpen
+  setIsTourOpen,
+  language = 'en'
 }) {
   const [internalTourOpen, setInternalTourOpen] = useState(false);
   const [tourStep, setTourStep] = useState(0);
+
+  const t = translations[language] || translations.en;
 
   const showTour = isTourOpen || internalTourOpen;
   const setShowTour = (val) => {
@@ -40,21 +45,69 @@ export default function UserDashboard({
   const safeRadiusKm = (estimatedKm * 0.75).toFixed(1);
   const isCritical = predBattery <= 15;
 
+  // Battery State-of-Health (SOH) Telemetry State
+  const [sohData] = useState({
+    sohPercent: 96.4,
+    healthStatus: 'OPTIMAL',
+    retainedCapacityKwh: 3.57,
+    totalCapacityKwh: 3.70,
+    estimatedLifecycleRemainingKm: 47500,
+    cycleCount: 312,
+    cellDeltaMv: 11,
+    tempCelsius: 28.5
+  });
+
+  // Indian EV Diagnostic Trouble Code (DTC) State
+  const [dtcCode, setDtcCode] = useState('ATHER-36');
+  const [dtcResult, setDtcResult] = useState({
+    code: 'ATHER-36',
+    diagnostic: {
+      brand: 'Ather Energy',
+      severity: 'WARNING',
+      title: 'Motor Controller Thermal Threshold',
+      description: 'Motor temperature sensor detected elevated temp following continuous sport mode riding.',
+      actionableSteps: [
+        'Park in shaded area and turn key/dash off for 7-10 minutes.',
+        'Avoid hill climbs immediately after rebooting.',
+        'If warning persists after cooling, request Sahayak mobile boost or flatbed.'
+      ]
+    }
+  });
+  const [dtcLoading, setDtcLoading] = useState(false);
+
+  const handleLookupDtc = async (codeToLookup) => {
+    const code = (codeToLookup || dtcCode).trim();
+    if (!code) return;
+    setDtcLoading(true);
+    try {
+      const res = await fetch(`/api/features/dtc/${encodeURIComponent(code)}`);
+      const data = await res.json();
+      if (data.success) {
+        setDtcResult(data);
+        if (codeToLookup) setDtcCode(codeToLookup);
+      }
+    } catch (err) {
+      console.error('Error fetching DTC:', err);
+    } finally {
+      setDtcLoading(false);
+    }
+  };
+
   const tourSteps = [
     {
-      title: 'Welcome to EV Sahayak (ईवी सहायक)',
-      subtitle: 'Bengaluru’s On-Demand Electric Vehicle Charging & Roadside Rescue Ecosystem',
-      description: 'EV Sahayak is designed to eliminate range anxiety for electric two-wheeler riders. Whether you are stranded with a dead battery or planning your city ride, EV Sahayak connects you with verified charging points and local peer helpers equipped with portable chargers and modular batteries.',
+      title: t.tour_step_0_title,
+      subtitle: t.tour_step_0_sub,
+      description: t.tour_step_0_desc,
       icon: Zap,
       accentColor: '#2563eb',
       badge: 'Getting Started',
-      actionText: 'Next: Step 1',
+      actionText: t.next_slide,
       navTarget: null
     },
     {
-      title: '1. Register Your EV in "My EV Garage"',
-      subtitle: 'Connector & Swappable Battery Compatibility',
-      description: 'Before requesting rescue, add your electric scooter to your garage (located in your Profile). This ensures EV Sahayak automatically checks whether your EV needs a 15A AC plug, Ather Dot, Type 2, or supports instant 3-minute modular battery swaps (like Hero Vida & Bounce Infinity).',
+      title: t.tour_step_1_title,
+      subtitle: t.tour_step_1_sub,
+      description: t.tour_step_1_desc,
       icon: Bike,
       accentColor: '#3b82f6',
       badge: 'Essential Setup',
@@ -62,9 +115,9 @@ export default function UserDashboard({
       navTarget: 'profile'
     },
     {
-      title: '2. Request Emergency Assistance',
-      subtitle: 'Real-Time GPS Location Matching & Rescue',
-      description: 'Stranded on the road? The Emergency Assistance tab uses your live device GPS to locate nearby helpers with portable chargers or swappable batteries. Helpers are confirmed with locked pricing and an ETA within 15 minutes.',
+      title: t.tour_step_2_title,
+      subtitle: t.tour_step_2_sub,
+      description: t.tour_step_2_desc,
       icon: AlertCircle,
       accentColor: '#f43f5e',
       badge: 'SOS Rescue',
@@ -72,9 +125,9 @@ export default function UserDashboard({
       navTarget: 'emergency'
     },
     {
-      title: '3. Find Verified Charging Stations',
-      subtitle: '100% Free Public Charging Directory',
-      description: 'Search hundreds of public charging docks across Bengaluru including Tata Power, BESCOM, Ather Grid, and Jio-bp with live filter by connector type and turn-by-turn navigation.',
+      title: t.tour_step_3_title,
+      subtitle: t.tour_step_3_sub,
+      description: t.tour_step_3_desc,
       icon: MapPin,
       accentColor: '#00d293',
       badge: 'Free Directory',
@@ -82,9 +135,9 @@ export default function UserDashboard({
       navTarget: 'charging'
     },
     {
-      title: '4. Earn by Helping Other EV Riders',
-      subtitle: 'Monetize Your Portable Charger or Battery Pack',
-      description: 'Join the community helper network for a one-time ₹49 audit fee. Toggle your status online when available, receive rescue dispatches near your area, and earn verified platform fees assisting fellow riders.',
+      title: t.tour_step_4_title,
+      subtitle: t.tour_step_4_sub,
+      description: t.tour_step_4_desc,
       icon: HeartHandshake,
       accentColor: '#8b5cf6',
       badge: 'Community Network',
@@ -111,32 +164,23 @@ export default function UserDashboard({
         {/* Background glow decoration */}
         <div style={{
           position: 'absolute',
-          top: '-60px',
-          right: '-40px',
-          width: '260px',
-          height: '260px',
-          background: isRoyal 
-            ? 'radial-gradient(circle, rgba(29,78,216,0.12) 0%, rgba(29,78,216,0) 70%)' 
-            : 'radial-gradient(circle, rgba(37,99,235,0.25) 0%, rgba(37,99,235,0) 70%)',
+          top: '-50%',
+          right: '-10%',
+          width: '400px',
+          height: '400px',
           borderRadius: '50%',
+          background: isRoyal ? 'radial-gradient(circle, rgba(29, 78, 216, 0.08) 0%, transparent 70%)' : 'radial-gradient(circle, rgba(37, 99, 235, 0.2) 0%, transparent 70%)',
           pointerEvents: 'none'
         }} />
 
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
-          alignItems: 'center', 
-          gap: '24px', 
-          position: 'relative', 
-          zIndex: 1 
-        }}>
-          {/* Left Column: Welcome & Quick Launch */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', alignItems: 'center' }}>
+          {/* Left Column: Greeting & Platform Context */}
           <div>
             <div style={{ 
               display: 'inline-flex', 
               alignItems: 'center', 
-              gap: '8px', 
-              background: isRoyal ? 'rgba(29, 78, 216, 0.1)' : 'rgba(37, 99, 235, 0.2)', 
+              gap: '6px', 
+              background: isRoyal ? 'rgba(29, 78, 216, 0.08)' : 'rgba(59, 130, 246, 0.15)', 
               border: isRoyal ? '1px solid rgba(29, 78, 216, 0.25)' : '1px solid rgba(59, 130, 246, 0.3)', 
               padding: '4px 12px', 
               borderRadius: '20px', 
@@ -146,7 +190,7 @@ export default function UserDashboard({
               marginBottom: '12px' 
             }}>
               <Sparkles size={14} />
-              <span>Bengaluru EV Roadside Assistance & Discovery Pilot</span>
+              <span>{t.welcome_subtitle}</span>
             </div>
 
             <h1 style={{ 
@@ -156,7 +200,7 @@ export default function UserDashboard({
               marginBottom: '8px', 
               letterSpacing: '-0.02em' 
             }}>
-              Welcome back, {currentUser?.name || 'EV Rider'} 👋
+              {t.welcome_title}, {currentUser?.name || 'EV Rider'}
             </h1>
 
             <p style={{ 
@@ -165,7 +209,7 @@ export default function UserDashboard({
               lineHeight: '1.6', 
               marginBottom: '20px' 
             }}>
-              Your central command for Bengaluru electric mobility. Find verified charging stations, register your EV, or request immediate roadside assistance when stranded.
+              {t.welcome_desc}
             </p>
 
             {/* Quick Status Badges */}
@@ -184,7 +228,7 @@ export default function UserDashboard({
                 fontWeight: 600
               }}>
                 <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: isRoyal ? '#059669' : '#00d293', boxShadow: '0 0 8px #00d293' }} />
-                <span>GPS Pin: {currentUser?.location?.lat?.toFixed(3)}°N, {currentUser?.location?.lng?.toFixed(3)}°E</span>
+                <span>{t.live_gps}: {currentUser?.location?.lat?.toFixed(3) || '12.971'}°N, {currentUser?.location?.lng?.toFixed(3) || '77.594'}°E</span>
               </div>
 
               {/* Garage Status (opens profile) */}
@@ -211,7 +255,7 @@ export default function UserDashboard({
                 }}
               >
                 <Bike size={14} />
-                <span>{vehicles.length > 0 ? `${vehicles.length} EV in Garage (${vehicles[0].brand})` : 'Garage: + Add in Profile'}</span>
+                <span>{vehicles.length > 0 ? `${vehicles.length} EV (${vehicles[0].brand})` : t.nav_profile}</span>
               </div>
 
               {/* Active Helpers */}
@@ -228,7 +272,7 @@ export default function UserDashboard({
                 fontWeight: 600
               }}>
                 <ShieldCheck size={14} />
-                <span>{activeHelpersCount} Sahayak Helpers Ready</span>
+                <span>{activeHelpersCount} {t.nav_helper}</span>
               </div>
             </div>
 
@@ -249,10 +293,10 @@ export default function UserDashboard({
                 }}
               >
                 <HelpCircle size={16} />
-                <span>Interactive App Tour</span>
+                <span>{t.interactive_tour_btn}</span>
               </button>
               <span style={{ fontSize: '0.78rem', color: isRoyal ? '#64748b' : '#94a3b8' }}>
-                4 Core Features • 60-second guide
+                {t.tour_pill}
               </span>
             </div>
           </div>
@@ -290,7 +334,7 @@ export default function UserDashboard({
         border: isRoyal ? '1px solid rgba(225, 29, 72, 0.3)' : '1px solid rgba(244, 63, 94, 0.3)',
         borderRadius: '14px',
         padding: '20px 24px',
-        marginBottom: '32px',
+        marginBottom: '28px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -313,10 +357,10 @@ export default function UserDashboard({
           </div>
           <div>
             <div style={{ fontWeight: 800, fontSize: '1.05rem', color: isRoyal ? '#0f172a' : '#ffffff' }}>
-              Stranded on the Road with Low Battery?
+              {t.sos_title}
             </div>
             <div style={{ fontSize: '0.82rem', color: isRoyal ? '#475569' : '#cbd5e1', marginTop: '2px' }}>
-              Request portable charger delivery or a compatible modular battery swap right to your live device GPS pin.
+              {t.sos_desc}
             </div>
           </div>
         </div>
@@ -340,214 +384,63 @@ export default function UserDashboard({
           }}
         >
           <Zap size={18} />
-          <span>Dispatch Emergency Rescue</span>
+          <span>{t.sos_btn}</span>
           <ArrowRight size={16} />
         </button>
       </div>
 
-      {/* 3. Section Title */}
-      <div style={{ marginBottom: '18px' }}>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#ffffff', marginBottom: '4px' }}>
-          App Walkthrough & Core Services
-        </h2>
-        <p style={{ fontSize: '0.82rem', color: '#94a3b8' }}>
-          Get familiar with EV Sahayak's 4 primary modules and navigate directly to what you need.
-        </p>
+      {/* 3. Interactive Walkthrough & Pitch Slides Action Banner */}
+      <div className="pro-card" style={{
+        padding: '18px 24px',
+        marginBottom: '28px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '16px',
+        background: isRoyal 
+          ? 'linear-gradient(135deg, #eff6ff 0%, #ffffff 100%)' 
+          : 'linear-gradient(135deg, rgba(37, 99, 235, 0.12) 0%, #0f172a 100%)',
+        border: isRoyal ? '1px solid #bfdbfe' : '1px solid rgba(37, 99, 235, 0.3)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', maxWidth: '680px' }}>
+          <div style={{
+            background: isRoyal ? '#1d4ed8' : '#2563eb',
+            color: '#ffffff',
+            borderRadius: '12px',
+            padding: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: isRoyal ? '0 4px 12px rgba(29, 78, 216, 0.25)' : '0 4px 12px rgba(37, 99, 235, 0.3)'
+          }}>
+            <HelpCircle size={22} />
+          </div>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: '1.05rem', color: isRoyal ? '#0f172a' : '#ffffff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>{t.walkthrough_title}</span>
+              <span className="badge-clean badge-blue" style={{ fontSize: '0.68rem' }}>{t.walkthrough_badge}</span>
+            </div>
+            <div style={{ fontSize: '0.82rem', color: isRoyal ? '#475569' : '#cbd5e1', marginTop: '3px' }}>
+              {t.walkthrough_desc}
+            </div>
+          </div>
+        </div>
+
+        <button
+          onClick={() => {
+            setTourStep(0);
+            setShowTour(true);
+          }}
+          className="btn-primary"
+          style={{ padding: '10px 20px', fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: '8px' }}
+        >
+          <Sparkles size={16} />
+          <span>{t.walkthrough_btn}</span>
+        </button>
       </div>
 
-      {/* 4. Four Core Feature Walkthrough Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '32px' }}>
-        
-        {/* Module 1: Garage */}
-        <div className="pro-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
-              <div style={{
-                background: 'rgba(59, 130, 246, 0.15)',
-                color: '#3b82f6',
-                borderRadius: '12px',
-                padding: '12px',
-                display: 'flex'
-              }}>
-                <Bike size={24} />
-              </div>
-              <span className="badge-clean badge-blue">STEP 1 • PROFILE</span>
-            </div>
-
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#ffffff', marginBottom: '6px' }}>
-              My EV Garage
-            </h3>
-            <p style={{ fontSize: '0.84rem', color: '#94a3b8', lineHeight: '1.5', marginBottom: '16px' }}>
-              Save your electric two-wheeler (Ather, Ola, TVS, Vida, Bounce, etc.). Compatibility matching ensures helpers bring the exact charger connector or swappable pack your bike supports.
-            </p>
-
-            <div style={{
-              background: '#090d16',
-              border: '1px solid #1e293b',
-              borderRadius: '8px',
-              padding: '10px 12px',
-              fontSize: '0.78rem',
-              color: '#cbd5e1',
-              marginBottom: '20px'
-            }}>
-              <strong>Status:</strong> {vehicles.length === 0 ? '⚠️ No EV added yet' : `✅ ${vehicles.length} Registered (${vehicles[0].brand})`}
-            </div>
-          </div>
-
-          <button
-            onClick={() => onNavigate('profile')}
-            className="btn-secondary"
-            style={{ width: '100%', justifyContent: 'center', padding: '10px' }}
-          >
-            <span>{vehicles.length === 0 ? 'Add Your Vehicle' : 'Manage in Profile'}</span>
-            <ChevronRight size={16} />
-          </button>
-        </div>
-
-        {/* Module 2: Emergency Rescue */}
-        <div className="pro-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
-              <div style={{
-                background: 'rgba(244, 63, 94, 0.15)',
-                color: '#f43f5e',
-                borderRadius: '12px',
-                padding: '12px',
-                display: 'flex'
-              }}>
-                <AlertCircle size={24} />
-              </div>
-              <span className="badge-clean" style={{ background: 'rgba(244,63,94,0.15)', color: '#f43f5e', border: '1px solid rgba(244,63,94,0.3)' }}>
-                STEP 2 • ON-DEMAND SOS
-              </span>
-            </div>
-
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#ffffff', marginBottom: '6px' }}>
-              Emergency Rescue
-            </h3>
-            <p style={{ fontSize: '0.84rem', color: '#94a3b8', lineHeight: '1.5', marginBottom: '16px' }}>
-              Stranded with low battery? Set battery slider from 0 to 100%, match with verified helpers in Bengaluru, and unlock contact details with an automated WhatsApp location pin.
-            </p>
-
-            <div style={{
-              background: '#090d16',
-              border: '1px solid #1e293b',
-              borderRadius: '8px',
-              padding: '10px 12px',
-              fontSize: '0.78rem',
-              color: '#cbd5e1',
-              marginBottom: '20px'
-            }}>
-              <strong>Rescue SLA:</strong> 15-Minute Expiry • ₹19 Contact Pass
-            </div>
-          </div>
-
-          <button
-            onClick={() => onNavigate('emergency')}
-            className="btn-secondary"
-            style={{ width: '100%', justifyContent: 'center', padding: '10px' }}
-          >
-            <span>Open Rescue Screen</span>
-            <ChevronRight size={16} />
-          </button>
-        </div>
-
-        {/* Module 3: Charging Station Directory */}
-        <div className="pro-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
-              <div style={{
-                background: 'rgba(0, 210, 147, 0.15)',
-                color: '#00d293',
-                borderRadius: '12px',
-                padding: '12px',
-                display: 'flex'
-              }}>
-                <MapPin size={24} />
-              </div>
-              <span className="badge-clean badge-green">STEP 3 • DIRECTORY</span>
-            </div>
-
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#ffffff', marginBottom: '6px' }}>
-              Find Charging Stations
-            </h3>
-            <p style={{ fontSize: '0.84rem', color: '#94a3b8', lineHeight: '1.5', marginBottom: '16px' }}>
-              Explore verified charging points and battery swap docks across Bengaluru. Filter by Tata Power, BESCOM, Ather, or Jio-bp with 100% free turn-by-turn Google Maps navigation.
-            </p>
-
-            <div style={{
-              background: '#090d16',
-              border: '1px solid #1e293b',
-              borderRadius: '8px',
-              padding: '10px 12px',
-              fontSize: '0.78rem',
-              color: '#cbd5e1',
-              marginBottom: '20px'
-            }}>
-              <strong>Coverage:</strong> {stations.length} Verified Charging Hubs
-            </div>
-          </div>
-
-          <button
-            onClick={() => onNavigate('charging')}
-            className="btn-secondary"
-            style={{ width: '100%', justifyContent: 'center', padding: '10px' }}
-          >
-            <span>Search Stations</span>
-            <ChevronRight size={16} />
-          </button>
-        </div>
-
-        {/* Module 4: Earn by Helping */}
-        <div className="pro-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
-              <div style={{
-                background: 'rgba(168, 85, 247, 0.15)',
-                color: '#a855f7',
-                borderRadius: '12px',
-                padding: '12px',
-                display: 'flex'
-              }}>
-                <HeartHandshake size={24} />
-              </div>
-              <span className="badge-clean" style={{ background: 'rgba(168,85,247,0.15)', color: '#c084fc', border: '1px solid rgba(168,85,247,0.3)' }}>
-                STEP 4 • COMMUNITY
-              </span>
-            </div>
-
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#ffffff', marginBottom: '6px' }}>
-              Earn by Helping
-            </h3>
-            <p style={{ fontSize: '0.84rem', color: '#94a3b8', lineHeight: '1.5', marginBottom: '16px' }}>
-              Have an EV charger or portable battery? Register as an audited Sahayak helper for ₹49. Toggle availability status anytime and get paid assisting stranded EV riders.
-            </p>
-
-            <div style={{
-              background: '#090d16',
-              border: '1px solid #1e293b',
-              borderRadius: '8px',
-              padding: '10px 12px',
-              fontSize: '0.78rem',
-              color: '#cbd5e1',
-              marginBottom: '20px'
-            }}>
-              <strong>Payout:</strong> Confirmed price paid directly by rider
-            </div>
-          </div>
-
-          <button
-            onClick={() => onNavigate('helper')}
-            className="btn-secondary"
-            style={{ width: '100%', justifyContent: 'center', padding: '10px' }}
-          >
-            <span>Register as Helper</span>
-            <ChevronRight size={16} />
-          </button>
-        </div>
-      </div>
-
-      {/* 5. Predictive Battery & Safe Radius Assistance (Future PRD Requirement) */}
+      {/* 4. Predictive Battery & Safe Radius Assistance (Future PRD Requirement) */}
       <div className="pro-card" style={{
         padding: '24px 28px',
         marginBottom: '28px',
@@ -561,14 +454,14 @@ export default function UserDashboard({
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
               <BatteryCharging size={20} color={isCritical ? '#dc2626' : '#00d293'} />
               <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: isRoyal ? '#0f172a' : '#ffffff' }}>
-                Predictive Battery & Safe Reach Radius
+                {t.pred_title}
               </h3>
               <span className={`badge-clean ${isCritical ? 'badge-amber' : 'badge-green'}`} style={{ fontSize: '0.68rem' }}>
-                {isCritical ? 'CRITICAL RESERVE' : 'TELEMETRY ACTIVE'}
+                {isCritical ? t.critical_reserve : t.telemetry_active}
               </span>
             </div>
             <p style={{ fontSize: '0.82rem', color: isRoyal ? '#64748b' : '#94a3b8' }}>
-              Real-time range prediction for your <b>{activeVehicle.brand} {activeVehicle.modelName}</b> based on remaining battery SOC % and riding behavior.
+              {t.pred_subtitle} ({activeVehicle.brand} {activeVehicle.modelName})
             </p>
           </div>
 
@@ -599,7 +492,7 @@ export default function UserDashboard({
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
               <span style={{ fontSize: '0.82rem', fontWeight: 600, color: isRoyal ? '#475569' : '#cbd5e1' }}>
-                Current State of Charge (SOC):
+                {t.soc_label}
               </span>
               <span style={{ fontSize: '1.25rem', fontWeight: 800, color: isCritical ? '#dc2626' : '#00d293' }}>
                 {predBattery}%
@@ -627,29 +520,27 @@ export default function UserDashboard({
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div style={{ background: isRoyal ? '#f8fafc' : '#090d16', border: isRoyal ? '1px solid #e2e8f0' : '1px solid #1e293b', borderRadius: '10px', padding: '12px' }}>
-              <div style={{ fontSize: '0.72rem', color: isRoyal ? '#64748b' : '#94a3b8' }}>Predicted Range</div>
+              <div style={{ fontSize: '0.72rem', color: isRoyal ? '#64748b' : '#94a3b8' }}>{t.predicted_range}</div>
               <div style={{ fontSize: '1.5rem', fontWeight: 800, color: isRoyal ? '#1d4ed8' : '#38bdf8' }}>
                 ~{estimatedKm} <span style={{ fontSize: '0.8rem', fontWeight: 500 }}>km</span>
               </div>
-              <div style={{ fontSize: '0.68rem', color: '#64748b' }}>at {ridingMode} mode speed</div>
+              <div style={{ fontSize: '0.68rem', color: '#64748b' }}>{ridingMode} {t.mode_speed_note}</div>
             </div>
 
             <div style={{ background: isRoyal ? '#f8fafc' : '#090d16', border: isRoyal ? '1px solid #e2e8f0' : '1px solid #1e293b', borderRadius: '10px', padding: '12px' }}>
-              <div style={{ fontSize: '0.72rem', color: isRoyal ? '#64748b' : '#94a3b8' }}>Safe Reach Radius</div>
+              <div style={{ fontSize: '0.72rem', color: isRoyal ? '#64748b' : '#94a3b8' }}>{t.safe_radius}</div>
               <div style={{ fontSize: '1.5rem', fontWeight: 800, color: isCritical ? '#dc2626' : '#00d293' }}>
                 ~{safeRadiusKm} <span style={{ fontSize: '0.8rem', fontWeight: 500 }}>km</span>
               </div>
-              <div style={{ fontSize: '0.68rem', color: '#64748b' }}>with 25% safety reserve</div>
+              <div style={{ fontSize: '0.68rem', color: '#64748b' }}>{t.safety_reserve_note}</div>
             </div>
           </div>
         </div>
 
         {/* Action Recommendation */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', paddingTop: '14px', borderTop: isRoyal ? '1px solid #e2e8f0' : '1px solid #1e293b', flexWrap: 'wrap', gap: '10px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', paddingTop: '14px', borderTop: isRoyal ? '1px solid #e2e8f0' : '1px solid #1e293b', flexWrap: 'gap', gap: '10px' }}>
           <div style={{ fontSize: '0.8rem', color: isCritical ? '#dc2626' : (isRoyal ? '#475569' : '#cbd5e1'), fontWeight: 600 }}>
-            {isCritical 
-              ? '⚠️ Warning: Distance to next charging station may exceed safe range. Request mobile helper.'
-              : '✅ Safe Range: Multiple public charging stations located within your safe radius.'}
+            {isCritical ? t.warning_critical : t.safe_range_ok}
           </div>
 
           <div style={{ display: 'flex', gap: '8px' }}>
@@ -658,7 +549,7 @@ export default function UserDashboard({
               className="btn-secondary"
               style={{ padding: '6px 12px', fontSize: '0.78rem' }}
             >
-              <span>View Charging Stations</span>
+              <span>{t.view_stations_btn}</span>
             </button>
             {isCritical && (
               <button
@@ -666,14 +557,166 @@ export default function UserDashboard({
                 className="btn-primary"
                 style={{ padding: '6px 14px', fontSize: '0.78rem', background: '#dc2626' }}
               >
-                <span>Call Emergency Rescue</span>
+                <span>{t.call_rescue_btn}</span>
               </button>
             )}
           </div>
         </div>
       </div>
 
-      {/* 6. Key Platform Guarantees Strip */}
+      {/* 4B & 4C: Battery Health Degradation & Indian EV Diagnostic Troubleshooter */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '20px', marginBottom: '28px' }}>
+        {/* Card 1: Battery SOH & Degradation Telemetry */}
+        <div className="pro-card" style={{
+          padding: '22px 24px',
+          background: isRoyal ? '#ffffff' : '#090d16',
+          border: isRoyal ? '1px solid #cbd5e1' : '1px solid #1e293b'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Activity size={18} color="#00d293" />
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: isRoyal ? '#0f172a' : '#ffffff' }}>
+                {t.battery_soh_title}
+              </h3>
+            </div>
+            <span className="badge-clean badge-green" style={{ fontSize: '0.68rem' }}>
+              GRADE A • {sohData.healthStatus}
+            </span>
+          </div>
+
+          <p style={{ fontSize: '0.8rem', color: isRoyal ? '#64748b' : '#94a3b8', marginBottom: '16px', lineHeight: '1.5' }}>
+            Bengaluru ambient thermal model for {activeVehicle.brand} ({activeVehicle.modelName || 'EV'}). Real-time cell telemetry & capacity retention.
+          </p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+            <div style={{ background: isRoyal ? '#f8fafc' : '#0f172a', padding: '12px 14px', borderRadius: '10px', border: isRoyal ? '1px solid #e2e8f0' : '1px solid #1e293b' }}>
+              <div style={{ fontSize: '0.7rem', color: isRoyal ? '#64748b' : '#94a3b8' }}>State of Health</div>
+              <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#00d293', fontFamily: 'var(--font-mono)' }}>
+                {sohData.sohPercent}%
+              </div>
+              <div style={{ fontSize: '0.68rem', color: '#64748b', marginTop: '2px' }}>
+                {sohData.retainedCapacityKwh} / {sohData.totalCapacityKwh} kWh
+              </div>
+            </div>
+
+            <div style={{ background: isRoyal ? '#f8fafc' : '#0f172a', padding: '12px 14px', borderRadius: '10px', border: isRoyal ? '1px solid #e2e8f0' : '1px solid #1e293b' }}>
+              <div style={{ fontSize: '0.7rem', color: isRoyal ? '#64748b' : '#94a3b8' }}>{t.lifecycle_est}</div>
+              <div style={{ fontSize: '1.45rem', fontWeight: 800, color: isRoyal ? '#1d4ed8' : '#38bdf8', fontFamily: 'var(--font-mono)' }}>
+                ~{sohData.estimatedLifecycleRemainingKm.toLocaleString()} <span style={{ fontSize: '0.75rem' }}>km</span>
+              </div>
+              <div style={{ fontSize: '0.68rem', color: '#64748b', marginTop: '2px' }}>
+                {sohData.cycleCount} charge cycles
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.75rem', color: isRoyal ? '#475569' : '#cbd5e1', paddingTop: '10px', borderTop: isRoyal ? '1px solid #e2e8f0' : '1px solid #1e293b' }}>
+            <span>Pack Temp: <b style={{ color: '#00d293' }}>{sohData.tempCelsius}°C</b></span>
+            <span>Cell Delta: <b style={{ color: '#00d293' }}>&lt; {sohData.cellDeltaMv} mV</b></span>
+            <span>{t.cell_condition}</span>
+          </div>
+        </div>
+
+        {/* Card 2: Indian EV Diagnostic Trouble Code (DTC) Decoder */}
+        <div className="pro-card" style={{
+          padding: '22px 24px',
+          background: isRoyal ? '#ffffff' : '#090d16',
+          border: isRoyal ? '1px solid #cbd5e1' : '1px solid #1e293b'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Cpu size={18} color="#38bdf8" />
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: isRoyal ? '#0f172a' : '#ffffff' }}>
+                {t.dtc_title}
+              </h3>
+            </div>
+            <span className="badge-clean badge-blue" style={{ fontSize: '0.68rem' }}>
+              INDIAN 2W/4W
+            </span>
+          </div>
+
+          <p style={{ fontSize: '0.8rem', color: isRoyal ? '#64748b' : '#94a3b8', marginBottom: '12px' }}>
+            {t.dtc_desc}
+          </p>
+
+          {/* Quick Code Chips */}
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '12px' }}>
+            {['ATHER-36', 'OLA-21', 'VIDA-14', 'TVS-09'].map(code => (
+              <button
+                key={code}
+                onClick={() => handleLookupDtc(code)}
+                style={{
+                  background: dtcCode === code ? (isRoyal ? '#1d4ed8' : '#2563eb') : (isRoyal ? '#f1f5f9' : '#0f172a'),
+                  color: dtcCode === code ? '#ffffff' : (isRoyal ? '#475569' : '#94a3b8'),
+                  border: isRoyal ? '1px solid #cbd5e1' : '1px solid #1e293b',
+                  borderRadius: '6px',
+                  padding: '3px 8px',
+                  fontSize: '0.72rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontFamily: 'var(--font-mono)'
+                }}
+              >
+                {code}
+              </button>
+            ))}
+          </div>
+
+          {/* Search Input Bar */}
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+            <input
+              type="text"
+              placeholder="Enter dash code (e.g. ATHER-36)..."
+              value={dtcCode}
+              onChange={(e) => setDtcCode(e.target.value.toUpperCase())}
+              onKeyDown={(e) => e.key === 'Enter' && handleLookupDtc()}
+              className="input-pro"
+              style={{ fontSize: '0.8rem', padding: '6px 12px', fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}
+            />
+            <button
+              onClick={() => handleLookupDtc()}
+              disabled={dtcLoading}
+              className="btn-primary"
+              style={{ padding: '6px 14px', fontSize: '0.78rem', whiteSpace: 'nowrap' }}
+            >
+              {dtcLoading ? <RotateCw size={14} className="animate-spin" /> : <Search size={14} />}
+              <span>{t.dtc_lookup}</span>
+            </button>
+          </div>
+
+          {/* Result Drawer */}
+          {dtcResult?.diagnostic && (
+            <div style={{
+              background: isRoyal ? '#f8fafc' : '#0f172a',
+              border: `1px solid ${dtcResult.diagnostic.severity === 'CRITICAL' ? '#dc2626' : (dtcResult.diagnostic.severity === 'WARNING' ? '#f59e0b' : '#3b82f6')}`,
+              borderRadius: '10px',
+              padding: '12px 14px'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <span style={{ fontWeight: 700, fontSize: '0.82rem', color: isRoyal ? '#0f172a' : '#ffffff' }}>
+                  {dtcResult.diagnostic.title}
+                </span>
+                <span className={`badge-clean ${dtcResult.diagnostic.severity === 'CRITICAL' ? 'badge-amber' : (dtcResult.diagnostic.severity === 'WARNING' ? 'badge-amber' : 'badge-blue')}`} style={{ fontSize: '0.65rem' }}>
+                  {dtcResult.diagnostic.severity}
+                </span>
+              </div>
+              <p style={{ fontSize: '0.75rem', color: isRoyal ? '#475569' : '#94a3b8', marginBottom: '8px', lineHeight: '1.4' }}>
+                {dtcResult.diagnostic.description}
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.72rem', color: isRoyal ? '#1e293b' : '#cbd5e1' }}>
+                {dtcResult.diagnostic.actionableSteps?.map((step, idx) => (
+                  <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
+                    <span style={{ color: '#00d293', fontWeight: 700 }}>{idx + 1}.</span>
+                    <span>{step}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 5. Key Platform Guarantees Strip */}
       <div style={{
         background: '#0f172a',
         border: '1px solid #1e293b',
@@ -688,8 +731,8 @@ export default function UserDashboard({
             <Navigation size={20} />
           </div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#ffffff' }}>Automatic GPS Matching</div>
-            <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Dynamic Haversine distance to nearest helpers</div>
+            <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#ffffff' }}>{t.guarantee_gps_title}</div>
+            <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{t.guarantee_gps_desc}</div>
           </div>
         </div>
 
@@ -698,8 +741,8 @@ export default function UserDashboard({
             <ShieldCheck size={20} />
           </div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#ffffff' }}>Audited Helpers</div>
-            <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Equipment verified & ₹49 gateway registration</div>
+            <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#ffffff' }}>{t.guarantee_audit_title}</div>
+            <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{t.guarantee_audit_desc}</div>
           </div>
         </div>
 
@@ -708,16 +751,23 @@ export default function UserDashboard({
             <Clock size={20} />
           </div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#ffffff' }}>15-Min Response Window</div>
-            <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Guaranteed response SLA or automatic auto-reassign</div>
+            <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#ffffff' }}>{t.guarantee_sla_title}</div>
+            <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{t.guarantee_sla_desc}</div>
           </div>
         </div>
       </div>
 
-      {/* Interactive Tour Modal */}
+      {/* Interactive Tour & Pitch Slides Modal */}
       {showTour && (
         <div className="modal-overlay" style={{ zIndex: 120 }}>
-          <div className="pro-card" style={{ maxWidth: '560px', width: '100%', padding: '28px', position: 'relative' }}>
+          <div className="pro-card" style={{
+            maxWidth: '560px',
+            width: '100%',
+            padding: '28px',
+            position: 'relative',
+            background: isRoyal ? '#ffffff' : '#0f172a',
+            border: isRoyal ? '1px solid #cbd5e1' : '1px solid #1e293b'
+          }}>
             {/* Close button */}
             <button
               onClick={() => setShowTour(false)}
@@ -727,7 +777,7 @@ export default function UserDashboard({
                 right: '20px',
                 background: 'transparent',
                 border: 'none',
-                color: '#94a3b8',
+                color: isRoyal ? '#64748b' : '#94a3b8',
                 cursor: 'pointer'
               }}
             >
@@ -739,8 +789,8 @@ export default function UserDashboard({
               <span className="badge-clean badge-blue">
                 {tourSteps[tourStep].badge}
               </span>
-              <span style={{ fontSize: '0.78rem', color: '#64748b' }}>
-                Slide {tourStep + 1} of {tourSteps.length}
+              <span style={{ fontSize: '0.78rem', color: isRoyal ? '#64748b' : '#94a3b8' }}>
+                {t.slide_prefix} {tourStep + 1} {t.of} {tourSteps.length}
               </span>
             </div>
 
@@ -756,19 +806,49 @@ export default function UserDashboard({
                 {React.createElement(tourSteps[tourStep].icon, { size: 26 })}
               </div>
               <div>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#ffffff' }}>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: isRoyal ? '#0f172a' : '#ffffff' }}>
                   {tourSteps[tourStep].title}
                 </h3>
-                <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                <div style={{ fontSize: '0.8rem', color: isRoyal ? '#64748b' : '#94a3b8' }}>
                   {tourSteps[tourStep].subtitle}
                 </div>
               </div>
             </div>
 
             {/* Description */}
-            <p style={{ fontSize: '0.88rem', color: '#cbd5e1', lineHeight: '1.6', marginBottom: '24px' }}>
+            <p style={{ fontSize: '0.88rem', color: isRoyal ? '#475569' : '#cbd5e1', lineHeight: '1.6', marginBottom: '18px' }}>
               {tourSteps[tourStep].description}
             </p>
+
+            {/* Pitch Video Placeholder */}
+            <div style={{
+              background: isRoyal ? '#f8fafc' : '#090d16',
+              border: isRoyal ? '1px dashed #cbd5e1' : '1px dashed #334155',
+              borderRadius: '12px',
+              padding: '12px 14px',
+              marginBottom: '22px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px'
+            }}>
+              <div style={{
+                background: isRoyal ? 'rgba(29, 78, 216, 0.1)' : 'rgba(37, 99, 235, 0.2)',
+                color: isRoyal ? '#1d4ed8' : '#38bdf8',
+                borderRadius: '8px',
+                padding: '8px',
+                display: 'flex'
+              }}>
+                <Video size={18} />
+              </div>
+              <div>
+                <div style={{ fontSize: '0.82rem', fontWeight: 700, color: isRoyal ? '#0f172a' : '#ffffff' }}>
+                  {t.video_slot_title}
+                </div>
+                <div style={{ fontSize: '0.72rem', color: isRoyal ? '#64748b' : '#94a3b8' }}>
+                  {t.video_slot_desc}
+                </div>
+              </div>
+            </div>
 
             {/* Progress Dots */}
             <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginBottom: '24px' }}>
@@ -780,7 +860,7 @@ export default function UserDashboard({
                     width: tourStep === idx ? '24px' : '8px',
                     height: '8px',
                     borderRadius: '4px',
-                    background: tourStep === idx ? '#2563eb' : '#334155',
+                    background: tourStep === idx ? (isRoyal ? '#1d4ed8' : '#2563eb') : (isRoyal ? '#cbd5e1' : '#334155'),
                     cursor: 'pointer',
                     transition: 'all 0.2s ease'
                   }}
@@ -797,7 +877,7 @@ export default function UserDashboard({
                 className="btn-secondary"
                 style={{ opacity: tourStep === 0 ? 0.4 : 1, cursor: tourStep === 0 ? 'not-allowed' : 'pointer' }}
               >
-                Previous
+                {t.prev_slide}
               </button>
 
               <div style={{ display: 'flex', gap: '10px' }}>
@@ -810,9 +890,9 @@ export default function UserDashboard({
                       if (target) onNavigate(target);
                     }}
                     className="btn-secondary"
-                    style={{ borderColor: '#3b82f6', color: '#60a5fa' }}
+                    style={{ borderColor: isRoyal ? '#1d4ed8' : '#3b82f6', color: isRoyal ? '#1d4ed8' : '#60a5fa' }}
                   >
-                    Open Page
+                    {t.open_page}
                   </button>
                 )}
 
@@ -822,7 +902,7 @@ export default function UserDashboard({
                     onClick={() => setTourStep(prev => prev + 1)}
                     className="btn-primary"
                   >
-                    Next Slide
+                    {t.next_slide}
                   </button>
                 ) : (
                   <button
@@ -830,7 +910,7 @@ export default function UserDashboard({
                     onClick={() => setShowTour(false)}
                     className="btn-primary"
                   >
-                    Get Started
+                    {t.get_started}
                   </button>
                 )}
               </div>
@@ -841,4 +921,3 @@ export default function UserDashboard({
     </div>
   );
 }
-

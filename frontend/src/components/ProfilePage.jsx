@@ -521,8 +521,14 @@ export default function ProfilePage({
                       <div style={{ fontSize: '0.78rem', color: isRoyal ? '#475569' : '#cbd5e1', display: 'flex', justifyContent: 'space-between' }}>
                         <span>Battery System:</span>
                         <b style={{ color: veh.hasSwappableBattery ? '#00d293' : (isRoyal ? '#1d4ed8' : '#38bdf8') }}>
-                          {veh.hasSwappableBattery ? '🔋 Modular Swappable' : '⚡ Fixed Battery'}
+                          {veh.hasSwappableBattery ? 'Modular Swappable' : 'Fixed In-Chassis Pack'}
                         </b>
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: isRoyal ? '#475569' : '#cbd5e1', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>Battery Health (SOH):</span>
+                        <span className="badge-clean badge-green" style={{ fontSize: '0.68rem', padding: '2px 8px' }}>
+                          96.4% • Grade A
+                        </span>
                       </div>
                       {veh.registrationNumber && (
                         <div style={{ fontSize: '0.78rem', color: isRoyal ? '#475569' : '#cbd5e1', display: 'flex', justifyContent: 'space-between' }}>

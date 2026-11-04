@@ -8,6 +8,7 @@ import { vehicleRouter } from './routes/vehicles.js';
 import { requestRouter } from './routes/requests.js';
 import { unlockRouter } from './routes/unlock.js';
 import { adminRouter } from './routes/admin.js';
+import { featuresRouter } from './routes/features.js';
 
 dotenv.config();
 
@@ -25,6 +26,7 @@ app.use('/api/vehicles', vehicleRouter);
 app.use('/api/requests', requestRouter);
 app.use('/api/unlock', unlockRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/features', featuresRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {

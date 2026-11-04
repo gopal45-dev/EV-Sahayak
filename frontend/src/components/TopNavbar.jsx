@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Sun, Moon, Bell, Globe, Check, X, Shield, ChevronDown } from 'lucide-react';
+import { translations } from '../translations';
 
 export default function TopNavbar({ 
   currentUser, 
@@ -12,6 +13,7 @@ export default function TopNavbar({
   onLanguageChange
 }) {
   const isRoyal = theme === 'royal';
+  const t = translations[language] || translations.en;
   const [showNotifications, setShowNotifications] = useState(false);
   const [showLangMenu, setShowLangMenu] = useState(false);
   const [unreadCount, setUnreadCount] = useState(2);
@@ -84,7 +86,7 @@ export default function TopNavbar({
           fontWeight: 600
         }}>
           <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: isRoyal ? '#059669' : '#00d293', display: 'inline-block' }} />
-          <span>Live GPS Active ({currentUser?.location?.lat?.toFixed(3) || '12.971'}°N, {currentUser?.location?.lng?.toFixed(3) || '77.594'}°E)</span>
+          <span>{t.live_gps} ({currentUser?.location?.lat?.toFixed(3) || '12.971'}°N, {currentUser?.location?.lng?.toFixed(3) || '77.594'}°E)</span>
         </div>
       </div>
 
@@ -106,7 +108,7 @@ export default function TopNavbar({
               cursor: 'pointer',
               transition: 'all 0.15s ease'
             }}
-            title="Search buttons and actions"
+            title={t.quick_search}
           >
             <Search size={18} />
           </button>
@@ -326,7 +328,7 @@ export default function TopNavbar({
               {currentUser?.name || 'Account'}
             </div>
             <div style={{ fontSize: '0.68rem', color: isRoyal ? '#dc2626' : '#94a3b8', fontWeight: 600 }}>
-              Profile & Garage
+              {t.nav_profile}
             </div>
           </div>
         </button>

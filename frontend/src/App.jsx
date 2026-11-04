@@ -18,8 +18,17 @@ const SESSION_EXPIRY_MS = SESSION_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
 const TAB_STORAGE_KEY = 'ev_sahayak_active_tab';
 const VEHICLES_STORAGE_KEY = 'ev_sahayak_user_vehicles';
 const THEME_STORAGE_KEY = 'ev_sahayak_theme';
+const LANGUAGE_STORAGE_KEY = 'ev_sahayak_language';
 
 const VALID_TABS = ['dashboard', 'emergency', 'charging', 'helper', 'profile'];
+
+const getStoredLanguage = () => {
+  try {
+    const saved = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+    if (saved === 'en' || saved === 'kn' || saved === 'hi') return saved;
+  } catch (e) {}
+  return 'en';
+};
 
 const getStoredTheme = () => {
   try {
@@ -72,9 +81,16 @@ const getStoredVehicles = () => {
 export default function App() {
   // Theme state: 'royal' (White, Red & Royal Blue) vs 'obsidian' (Dark)
   const [theme, setTheme] = useState(() => getStoredTheme());
-  const [language, setLanguage] = useState('en');
+  const [language, setLanguage] = useState(() => getStoredLanguage());
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isTourOpen, setIsTourOpen] = useState(false);
+
+  const handleLanguageChange = (newLang) => {
+    setLanguage(newLang);
+    try {
+      localStorage.setItem(LANGUAGE_STORAGE_KEY, newLang);
+    } catch (e) {}
+  };
 
   // Sync theme class to document body
   useEffect(() => {
@@ -362,6 +378,7 @@ export default function App() {
         theme={theme}
         onToggleTheme={toggleTheme}
         onOpenSearch={() => setIsSearchOpen(true)}
+        language={language}
       />
 
       {/* Main Content Pane */}
@@ -375,7 +392,7 @@ export default function App() {
           onToggleTheme={toggleTheme}
           onOpenSearch={() => setIsSearchOpen(true)}
           language={language}
-          onLanguageChange={setLanguage}
+          onLanguageChange={handleLanguageChange}
         />
 
         <main style={{ flex: 1, paddingBottom: '60px' }}>
@@ -389,6 +406,7 @@ export default function App() {
               theme={theme}
               isTourOpen={isTourOpen}
               setIsTourOpen={setIsTourOpen}
+              language={language}
             />
           )}
 

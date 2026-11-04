@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Search, Navigation, AlertTriangle, CheckCircle, Clock, Zap, MapPin, 
-  Filter, Route, Star, Bike, ChevronRight, Compass 
+  Filter, Route, Star, Bike, ChevronRight, Compass, Sun, DollarSign, Leaf 
 } from 'lucide-react';
 import InteractiveMap from './InteractiveMap';
 
@@ -12,6 +12,25 @@ export default function StationFinder({ stations = [], onReportStation, userVehi
   const [selectedOperator, setSelectedOperator] = useState('ALL');
   const [selectedStation, setSelectedStation] = useState(null);
   const [showReportModal, setShowReportModal] = useState(false);
+
+  // BESCOM Real-Time Dynamic Grid Tariff
+  const [bescomTariff, setBescomTariff] = useState({
+    zone: 'NORMAL',
+    ratePerKwh: '₹7.20',
+    solarMixPercent: 44,
+    recommendation: 'Standard tariff window: Good grid availability'
+  });
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/features/tariffs')
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          setBescomTariff(data);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Compatibility filter (P0: Compatibility-aware search)
   const [onlyCompatible, setOnlyCompatible] = useState(false);
@@ -136,6 +155,37 @@ export default function StationFinder({ stations = [], onReportStation, userVehi
             <Route size={14} />
             <span>Route Corridor (P2)</span>
           </button>
+        </div>
+      </div>
+
+      {/* BESCOM Real-Time Dynamic Grid Tariff & Solar Telemetry */}
+      <div className="pro-card" style={{
+        padding: '12px 18px',
+        marginBottom: '16px',
+        background: '#090d16',
+        border: '1px solid #1e293b',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '12px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>BESCOM Bengaluru Tariff:</span>
+            <span className={`badge-clean ${bescomTariff.zone === 'OFF_PEAK' ? 'badge-green' : (bescomTariff.zone === 'PEAK' ? 'badge-amber' : 'badge-blue')}`}>
+              {bescomTariff.zone} • {bescomTariff.ratePerKwh}/kWh
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: '#00d293' }}>
+            <Leaf size={14} />
+            <span>{bescomTariff.solarMixPercent}% Pavagada Clean Solar Feed</span>
+          </div>
+        </div>
+
+        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+          {bescomTariff.recommendation}
         </div>
       </div>
 
