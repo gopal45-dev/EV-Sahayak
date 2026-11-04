@@ -2,10 +2,14 @@ import React, { useState, useEffect } from 'react';
 import LoginPage from './components/LoginPage';
 import AdminWorkspace from './components/AdminWorkspace';
 import Sidebar from './components/Sidebar';
+import TopNavbar from './components/TopNavbar';
+import UserDashboard from './components/UserDashboard';
 import StationFinder from './components/StationFinder';
 import EmergencyAssistance from './components/EmergencyAssistance';
 import HelperPortal from './components/HelperPortal';
-import VehicleGarage from './components/VehicleGarage';
+import ProfilePage from './components/ProfilePage';
+import CommandPalette from './components/CommandPalette';
+import ThreeBackground from './components/ThreeBackground';
 import { initialStations, initialProviders } from '../../backend/src/seed/mockDatabase.js';
 
 const SESSION_STORAGE_KEY = 'ev_sahayak_user_session';
@@ -13,6 +17,17 @@ const SESSION_EXPIRY_DAYS = 7;
 const SESSION_EXPIRY_MS = SESSION_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
 const TAB_STORAGE_KEY = 'ev_sahayak_active_tab';
 const VEHICLES_STORAGE_KEY = 'ev_sahayak_user_vehicles';
+const THEME_STORAGE_KEY = 'ev_sahayak_theme';
+
+const VALID_TABS = ['dashboard', 'emergency', 'charging', 'helper', 'profile'];
+
+const getStoredTheme = () => {
+  try {
+    const saved = localStorage.getItem(THEME_STORAGE_KEY);
+    if (saved === 'royal' || saved === 'obsidian') return saved;
+  } catch (e) {}
+  return 'royal'; // Default to user requested theme: white, red and royal blue!
+};
 
 // Retrieve session from localStorage; valid for 7 days
 const getStoredSession = () => {
@@ -36,12 +51,14 @@ const getStoredSession = () => {
 const getStoredTab = (user) => {
   if (user?.role === 'ADMIN') return 'admin';
   try {
+    const hash = window.location.hash.replace('#', '');
+    if (VALID_TABS.includes(hash)) return hash;
     const savedTab = localStorage.getItem(TAB_STORAGE_KEY);
-    if (savedTab && ['emergency', 'charging', 'helper', 'garage'].includes(savedTab)) {
+    if (savedTab && VALID_TABS.includes(savedTab)) {
       return savedTab;
     }
   } catch (e) {}
-  return 'emergency';
+  return 'dashboard';
 };
 
 const getStoredVehicles = () => {
@@ -53,6 +70,23 @@ const getStoredVehicles = () => {
 };
 
 export default function App() {
+  // Theme state: 'royal' (White, Red & Royal Blue) vs 'obsidian' (Dark)
+  const [theme, setTheme] = useState(() => getStoredTheme());
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isTourOpen, setIsTourOpen] = useState(false);
+
+  // Sync theme class to document body
+  useEffect(() => {
+    document.body.className = theme === 'royal' ? 'theme-royal' : 'theme-obsidian';
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, theme);
+    } catch (e) {}
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'royal' ? 'obsidian' : 'royal');
+  };
+
   // Session stays logged in across refresh for at least 7 days unless logged out
   const [currentUser, setCurrentUser] = useState(() => getStoredSession());
   const [activeTab, setActiveTab] = useState(() => {
@@ -102,10 +136,41 @@ export default function App() {
     fetchBackendData();
   }, []);
 
-  const handleTabChange = (tabId) => {
-    setActiveTab(tabId);
+  // Synchronize browser history and mouse back/forward button navigation
+  useEffect(() => {
+    const hash = window.location.hash.replace('#', '');
+    if (VALID_TABS.includes(hash)) {
+      setActiveTab(hash);
+    } else if (activeTab) {
+      window.history.replaceState({ tab: activeTab }, '', `#${activeTab}`);
+    }
+
+    const onPopState = (event) => {
+      if (event.state && event.state.tab) {
+        setActiveTab(event.state.tab);
+        try { localStorage.setItem(TAB_STORAGE_KEY, event.state.tab); } catch (e) {}
+      } else {
+        const currentHash = window.location.hash.replace('#', '');
+        if (VALID_TABS.includes(currentHash)) {
+          setActiveTab(currentHash);
+          try { localStorage.setItem(TAB_STORAGE_KEY, currentHash); } catch (e) {}
+        }
+      }
+    };
+
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
+  const handleTabChange = (tabId, pushHistory = true) => {
+    // If routing to garage, redirect to profile where EV garage is housed
+    const targetTab = tabId === 'garage' ? 'profile' : tabId;
+    setActiveTab(targetTab);
     try {
-      localStorage.setItem(TAB_STORAGE_KEY, tabId);
+      localStorage.setItem(TAB_STORAGE_KEY, targetTab);
+      if (pushHistory) {
+        window.history.pushState({ tab: targetTab }, '', `#${targetTab}`);
+      }
     } catch (e) {}
   };
 
@@ -121,7 +186,7 @@ export default function App() {
     if (user.role === 'ADMIN') {
       handleTabChange('admin');
     } else {
-      handleTabChange('emergency');
+      handleTabChange('dashboard');
     }
   };
 
@@ -133,7 +198,7 @@ export default function App() {
       console.warn('Failed to clear session from localStorage:', err);
     }
     setCurrentUser(null);
-    setActiveTab('emergency');
+    setActiveTab('dashboard');
   };
 
   const handleReportStation = async (stationId, issueType, notes) => {
@@ -282,25 +347,54 @@ export default function App() {
     );
   }
 
-  // 3. Member Role: Render Responsive Left Sidebar Layout
+  // 3. Member Role: Render Responsive Left Sidebar Layout with Three.js 3D Background
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', background: 'var(--bg-canvas)' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', background: 'var(--bg-canvas)', position: 'relative' }}>
+      {/* Ambient 3D Three.js Particles & Grid Background */}
+      <ThreeBackground theme={theme} />
+
       {/* Collapsible Left Sidebar */}
       <Sidebar
         activeTab={activeTab}
         setActiveTab={handleTabChange}
         currentUser={currentUser}
         onLogout={handleLogout}
+        theme={theme}
+        onToggleTheme={toggleTheme}
+        onOpenSearch={() => setIsSearchOpen(true)}
       />
 
       {/* Main Content Pane */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, position: 'relative', zIndex: 1 }}>
+        {/* Top Navbar with Search, Theme Switcher & Account Logo in Top-Right Corner */}
+        <TopNavbar
+          currentUser={currentUser}
+          activeTab={activeTab}
+          onNavigate={handleTabChange}
+          theme={theme}
+          onToggleTheme={toggleTheme}
+          onOpenSearch={() => setIsSearchOpen(true)}
+        />
+
         <main style={{ flex: 1, paddingBottom: '60px' }}>
+          {activeTab === 'dashboard' && (
+            <UserDashboard
+              currentUser={currentUser}
+              vehicles={vehicles}
+              stations={stations}
+              helpers={helpers}
+              onNavigate={handleTabChange}
+              theme={theme}
+              isTourOpen={isTourOpen}
+              setIsTourOpen={setIsTourOpen}
+            />
+          )}
+
           {activeTab === 'emergency' && (
             <EmergencyAssistance
               currentUser={currentUser}
               vehicles={vehicles}
-              onNavigateToGarage={() => handleTabChange('garage')}
+              onNavigateToGarage={() => handleTabChange('profile')}
               onUnlockContact={(entitlement) => {
                 console.log('Unlocked contact pass entitlement:', entitlement);
               }}
@@ -323,22 +417,42 @@ export default function App() {
             />
           )}
 
-          {activeTab === 'garage' && (
-            <VehicleGarage
+          {/* Dedicated Profile & EV Garage View */}
+          {(activeTab === 'profile' || activeTab === 'garage') && (
+            <ProfilePage
+              currentUser={currentUser}
               vehicles={vehicles}
               onAddVehicle={handleAddVehicle}
               onRemoveVehicle={handleRemoveVehicle}
+              onLogout={handleLogout}
+              theme={theme}
+              helpers={helpers}
             />
           )}
         </main>
 
+        {/* Global Quick Action Search & Command Palette (Ctrl+K) */}
+        <CommandPalette
+          isOpen={isSearchOpen}
+          onClose={() => setIsSearchOpen(false)}
+          onNavigate={handleTabChange}
+          onToggleTheme={toggleTheme}
+          theme={theme}
+          onLogout={handleLogout}
+          onLaunchTour={() => {
+            handleTabChange('dashboard');
+            setIsTourOpen(true);
+          }}
+        />
+
         {/* Footer */}
         <footer style={{
-          borderTop: '1px solid #1e293b',
-          background: '#090d16',
+          borderTop: theme === 'royal' ? '1px solid #e2e8f0' : '1px solid #1e293b',
+          background: theme === 'royal' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(9, 13, 22, 0.9)',
+          backdropFilter: 'blur(8px)',
           padding: '20px 24px',
           fontSize: '0.78rem',
-          color: '#64748b',
+          color: theme === 'royal' ? '#64748b' : '#64748b',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -348,8 +462,8 @@ export default function App() {
           <div>
             EV Sahayak (ईवी सहायक) • Bengaluru Pilot Network
           </div>
-          <div style={{ fontSize: '0.72rem', color: '#475569' }}>
-            Logged in as {currentUser.name} • Device GPS Synchronized • Zero-Commit Policy Enforced
+          <div style={{ fontSize: '0.72rem', color: theme === 'royal' ? '#64748b' : '#475569' }}>
+            Logged in as {currentUser.name} • Theme: {theme === 'royal' ? 'Royal Light (White/Red/Blue)' : 'Obsidian Dark'} • 3D Visualizer Active
           </div>
         </footer>
       </div>

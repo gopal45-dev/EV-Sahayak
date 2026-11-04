@@ -39,6 +39,105 @@
   --transition-fast: 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* Royal Theme (White, Crimson Red & Royal Blue) */
+body.theme-royal {
+  --bg-canvas: #f8fafc;
+  --bg-surface-1: #ffffff;
+  --bg-surface-2: #f1f5f9;
+  --bg-surface-3: #e2e8f0;
+  --bg-overlay: rgba(255, 255, 255, 0.92);
+
+  --border-subtle: #e2e8f0;
+  --border-light: #cbd5e1;
+  --border-focus: #1d4ed8;
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-tertiary: #64748b;
+
+  --electric-teal: #059669;
+  --cobalt-blue: #1d4ed8;
+  --crimson-danger: #dc2626;
+
+  background: #f8fafc;
+  color: #0f172a;
+  background-image: 
+    radial-gradient(ellipse at 50% 0%, rgba(29, 78, 216, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 100%, rgba(220, 38, 38, 0.05) 0%, transparent 50%);
+}
+
+body.theme-royal h1, 
+body.theme-royal h2, 
+body.theme-royal h3, 
+body.theme-royal h4, 
+body.theme-royal h5, 
+body.theme-royal h6 {
+  color: #0f172a;
+}
+
+body.theme-royal .pro-card {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+}
+
+body.theme-royal .pro-card-hover:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
+}
+
+body.theme-royal .btn-primary {
+  background: #1d4ed8;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(29, 78, 216, 0.25);
+}
+body.theme-royal .btn-primary:hover {
+  background: #1e40af;
+}
+
+body.theme-royal .btn-secondary {
+  background: #f1f5f9;
+  color: #1e293b;
+  border-color: #cbd5e1;
+}
+body.theme-royal .btn-secondary:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+body.theme-royal .input-pro {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+body.theme-royal .input-pro:focus {
+  border-color: #1d4ed8;
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.15);
+}
+body.theme-royal .input-pro::placeholder {
+  color: #94a3b8;
+}
+
+body.theme-royal .badge-dark {
+  background: #f1f5f9;
+  color: #475569;
+  border-color: #cbd5e1;
+}
+
+body.theme-royal .glass-panel {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06) !important;
+}
+
+body.theme-royal ::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+body.theme-royal ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
