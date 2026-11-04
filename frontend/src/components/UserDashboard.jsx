@@ -29,6 +29,17 @@ export default function UserDashboard({
   const isRoyal = theme === 'royal';
   const activeHelpersCount = helpers.filter(h => h.availabilityStatus === 'AVAILABLE').length;
 
+  // Predictive Battery Assistance (Future PRD Requirement)
+  const [predBattery, setPredBattery] = useState(22);
+  const [ridingMode, setRidingMode] = useState('NORMAL');
+  const activeVehicle = vehicles[0] || { brand: 'Ather', modelName: '450X' };
+
+  // Range calculation based on battery % and mode
+  const modeMultiplier = ridingMode === 'ECO' ? 1.05 : (ridingMode === 'SPORT' ? 0.72 : 0.88);
+  const estimatedKm = (predBattery * 0.95 * modeMultiplier).toFixed(1);
+  const safeRadiusKm = (estimatedKm * 0.75).toFixed(1);
+  const isCritical = predBattery <= 15;
+
   const tourSteps = [
     {
       title: 'Welcome to EV Sahayak (ईवी सहायक)',
@@ -536,7 +547,133 @@ export default function UserDashboard({
         </div>
       </div>
 
-      {/* 5. Key Platform Guarantees Strip */}
+      {/* 5. Predictive Battery & Safe Radius Assistance (Future PRD Requirement) */}
+      <div className="pro-card" style={{
+        padding: '24px 28px',
+        marginBottom: '28px',
+        background: isCritical 
+          ? (isRoyal ? '#fff1f2' : 'rgba(239, 68, 68, 0.08)') 
+          : (isRoyal ? '#ffffff' : '#0f172a'),
+        borderColor: isCritical ? '#dc2626' : (isRoyal ? '#cbd5e1' : '#1e293b')
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '14px', marginBottom: '18px' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+              <BatteryCharging size={20} color={isCritical ? '#dc2626' : '#00d293'} />
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: isRoyal ? '#0f172a' : '#ffffff' }}>
+                Predictive Battery & Safe Reach Radius
+              </h3>
+              <span className={`badge-clean ${isCritical ? 'badge-amber' : 'badge-green'}`} style={{ fontSize: '0.68rem' }}>
+                {isCritical ? 'CRITICAL RESERVE' : 'TELEMETRY ACTIVE'}
+              </span>
+            </div>
+            <p style={{ fontSize: '0.82rem', color: isRoyal ? '#64748b' : '#94a3b8' }}>
+              Real-time range prediction for your <b>{activeVehicle.brand} {activeVehicle.modelName}</b> based on remaining battery SOC % and riding behavior.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', gap: '6px' }}>
+            {['ECO', 'NORMAL', 'SPORT'].map(mode => (
+              <button
+                key={mode}
+                onClick={() => setRidingMode(mode)}
+                style={{
+                  background: ridingMode === mode ? (isRoyal ? '#1d4ed8' : '#2563eb') : (isRoyal ? '#f1f5f9' : '#090d16'),
+                  color: ridingMode === mode ? '#ffffff' : (isRoyal ? '#475569' : '#94a3b8'),
+                  border: isRoyal ? '1px solid #cbd5e1' : '1px solid #1e293b',
+                  borderRadius: '8px',
+                  padding: '5px 12px',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                {mode}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Battery Slider & Numerical Indicators */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px', alignItems: 'center' }}>
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <span style={{ fontSize: '0.82rem', fontWeight: 600, color: isRoyal ? '#475569' : '#cbd5e1' }}>
+                Current State of Charge (SOC):
+              </span>
+              <span style={{ fontSize: '1.25rem', fontWeight: 800, color: isCritical ? '#dc2626' : '#00d293' }}>
+                {predBattery}%
+              </span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={predBattery}
+              onChange={(e) => setPredBattery(Number(e.target.value))}
+              style={{
+                width: '100%',
+                accentColor: isCritical ? '#dc2626' : '#00d293',
+                cursor: 'pointer',
+                height: '6px'
+              }}
+            />
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: '#64748b', marginTop: '4px' }}>
+              <span>0% (Empty)</span>
+              <span>50%</span>
+              <span>100% (Full)</span>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div style={{ background: isRoyal ? '#f8fafc' : '#090d16', border: isRoyal ? '1px solid #e2e8f0' : '1px solid #1e293b', borderRadius: '10px', padding: '12px' }}>
+              <div style={{ fontSize: '0.72rem', color: isRoyal ? '#64748b' : '#94a3b8' }}>Predicted Range</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: isRoyal ? '#1d4ed8' : '#38bdf8' }}>
+                ~{estimatedKm} <span style={{ fontSize: '0.8rem', fontWeight: 500 }}>km</span>
+              </div>
+              <div style={{ fontSize: '0.68rem', color: '#64748b' }}>at {ridingMode} mode speed</div>
+            </div>
+
+            <div style={{ background: isRoyal ? '#f8fafc' : '#090d16', border: isRoyal ? '1px solid #e2e8f0' : '1px solid #1e293b', borderRadius: '10px', padding: '12px' }}>
+              <div style={{ fontSize: '0.72rem', color: isRoyal ? '#64748b' : '#94a3b8' }}>Safe Reach Radius</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: isCritical ? '#dc2626' : '#00d293' }}>
+                ~{safeRadiusKm} <span style={{ fontSize: '0.8rem', fontWeight: 500 }}>km</span>
+              </div>
+              <div style={{ fontSize: '0.68rem', color: '#64748b' }}>with 25% safety reserve</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Recommendation */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', paddingTop: '14px', borderTop: isRoyal ? '1px solid #e2e8f0' : '1px solid #1e293b', flexWrap: 'wrap', gap: '10px' }}>
+          <div style={{ fontSize: '0.8rem', color: isCritical ? '#dc2626' : (isRoyal ? '#475569' : '#cbd5e1'), fontWeight: 600 }}>
+            {isCritical 
+              ? '⚠️ Warning: Distance to next charging station may exceed safe range. Request mobile helper.'
+              : '✅ Safe Range: Multiple public charging stations located within your safe radius.'}
+          </div>
+
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              onClick={() => onNavigate('charging')}
+              className="btn-secondary"
+              style={{ padding: '6px 12px', fontSize: '0.78rem' }}
+            >
+              <span>View Charging Stations</span>
+            </button>
+            {isCritical && (
+              <button
+                onClick={() => onNavigate('emergency')}
+                className="btn-primary"
+                style={{ padding: '6px 14px', fontSize: '0.78rem', background: '#dc2626' }}
+              >
+                <span>Call Emergency Rescue</span>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* 6. Key Platform Guarantees Strip */}
       <div style={{
         background: '#0f172a',
         border: '1px solid #1e293b',

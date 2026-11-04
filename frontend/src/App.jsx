@@ -72,6 +72,7 @@ const getStoredVehicles = () => {
 export default function App() {
   // Theme state: 'royal' (White, Red & Royal Blue) vs 'obsidian' (Dark)
   const [theme, setTheme] = useState(() => getStoredTheme());
+  const [language, setLanguage] = useState('en');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isTourOpen, setIsTourOpen] = useState(false);
 
@@ -358,7 +359,6 @@ export default function App() {
         activeTab={activeTab}
         setActiveTab={handleTabChange}
         currentUser={currentUser}
-        onLogout={handleLogout}
         theme={theme}
         onToggleTheme={toggleTheme}
         onOpenSearch={() => setIsSearchOpen(true)}
@@ -366,7 +366,7 @@ export default function App() {
 
       {/* Main Content Pane */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, position: 'relative', zIndex: 1 }}>
-        {/* Top Navbar with Search, Theme Switcher & Account Logo in Top-Right Corner */}
+        {/* Top Navbar with Search (Icon Only), Language, Notifications, Theme & Account Logo */}
         <TopNavbar
           currentUser={currentUser}
           activeTab={activeTab}
@@ -374,6 +374,8 @@ export default function App() {
           theme={theme}
           onToggleTheme={toggleTheme}
           onOpenSearch={() => setIsSearchOpen(true)}
+          language={language}
+          onLanguageChange={setLanguage}
         />
 
         <main style={{ flex: 1, paddingBottom: '60px' }}>
@@ -405,6 +407,7 @@ export default function App() {
             <StationFinder
               stations={stations}
               onReportStation={handleReportStation}
+              userVehicles={vehicles}
             />
           )}
 

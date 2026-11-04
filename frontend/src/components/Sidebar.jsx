@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   Zap, MapPin, AlertCircle, HeartHandshake, 
-  ChevronLeft, ChevronRight, LogOut, Menu, X, 
+  ChevronLeft, ChevronRight, Menu, X, 
   LayoutDashboard, Search 
 } from 'lucide-react';
 
@@ -9,7 +9,6 @@ export default function Sidebar({
   activeTab, 
   setActiveTab, 
   currentUser, 
-  onLogout,
   theme = 'royal',
   onOpenSearch 
 }) {
@@ -272,33 +271,6 @@ export default function Sidebar({
               );
             })}
           </nav>
-        </div>
-
-        {/* Bottom Section: Sign Out Only */}
-        <div style={{ padding: '16px', borderTop: isRoyal ? '1px solid #e2e8f0' : '1px solid #1e293b' }}>
-          <button
-            onClick={onLogout}
-            style={{
-              width: '100%',
-              background: isRoyal ? '#fff1f2' : '#0f172a',
-              border: isRoyal ? '1px solid #fecdd3' : '1px solid #1e293b',
-              borderRadius: '8px',
-              padding: isCollapsed ? '10px 0' : '9px 12px',
-              color: isRoyal ? '#dc2626' : '#f87171',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: isCollapsed ? 'center' : 'flex-start',
-              gap: '8px',
-              fontSize: '0.82rem',
-              fontWeight: 600,
-              transition: 'all 0.15s ease'
-            }}
-            title="Sign Out"
-          >
-            <LogOut size={16} />
-            {!isCollapsed && <span>Sign Out</span>}
-          </button>
         </div>
       </aside>
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   AlertCircle, BatteryCharging, Zap, ShieldCheck, Clock, MapPin, 
-  Phone, CheckCircle2, Lock, Unlock, ArrowRight, MessageSquare, RefreshCw, Navigation 
+  Phone, CheckCircle2, Lock, Unlock, ArrowRight, MessageSquare, RefreshCw, Navigation, Star 
 } from 'lucide-react';
 import RazorpayModal from './RazorpayModal';
 
@@ -19,6 +19,11 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [showRazorpay, setShowRazorpay] = useState(false);
   const [unlockedEntitlement, setUnlockedEntitlement] = useState(null);
+
+  // Ratings & Reviews Modal (P1: Ratings and reviews)
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [ratingScore, setRatingScore] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
 
   // 15-minute confirmation expiry countdown
   const [timeLeftSeconds, setTimeLeftSeconds] = useState(15 * 60);
@@ -803,16 +808,91 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
           </div>
 
           <button
-            onClick={() => {
-              setStep(1);
-              setActiveRequest(null);
-              setUnlockedEntitlement(null);
-            }}
-            className="btn-secondary"
+            onClick={() => setShowReviewModal(true)}
+            className="btn-primary"
             style={{ fontSize: '0.85rem' }}
           >
-            Done / Close Rescue Session
+            Done & Leave Helper Review
           </button>
+        </div>
+      )}
+
+      {/* Ratings and Reviews Modal (P1: Ratings and reviews) */}
+      {showReviewModal && (
+        <div className="modal-overlay">
+          <div className="pro-card" style={{ maxWidth: '440px', width: '100%', padding: '24px' }}>
+            <h3 style={{ fontSize: '1.2rem', color: '#ffffff', marginBottom: '4px' }}>
+              Rate Your Rescue Experience
+            </h3>
+            <p style={{ fontSize: '0.82rem', color: '#94a3b8', marginBottom: '16px' }}>
+              How was your service with <b>{unlockedEntitlement?.providerName || 'your helper'}</b>?
+            </p>
+
+            {/* Star Selector */}
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', margin: '16px 0' }}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => setRatingScore(star)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: '4px'
+                  }}
+                >
+                  <Star
+                    size={32}
+                    color={star <= ratingScore ? '#fbbf24' : '#475569'}
+                    fill={star <= ratingScore ? '#fbbf24' : 'transparent'}
+                  />
+                </button>
+              ))}
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ fontSize: '0.78rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
+                Your Feedback (Optional)
+              </label>
+              <textarea
+                value={reviewComment}
+                onChange={(e) => setReviewComment(e.target.value)}
+                placeholder="Speed, equipment condition, overall experience..."
+                rows={3}
+                className="input-pro"
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowReviewModal(false);
+                  setStep(1);
+                  setActiveRequest(null);
+                  setUnlockedEntitlement(null);
+                }}
+                className="btn-secondary"
+              >
+                Skip
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  alert(`Thank you! Your ${ratingScore}-star review has been verified and posted.`);
+                  setShowReviewModal(false);
+                  setStep(1);
+                  setActiveRequest(null);
+                  setUnlockedEntitlement(null);
+                  setReviewComment('');
+                }}
+                className="btn-primary"
+              >
+                Submit Feedback
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

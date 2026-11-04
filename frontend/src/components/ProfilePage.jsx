@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { 
   User, Bike, History, CreditCard, LogOut, ShieldCheck, 
   MapPin, Phone, Zap, BatteryCharging, AlertCircle, Plus, 
-  Trash2, CheckCircle2, ChevronRight, Clock, Receipt, Sparkles 
+  Trash2, Edit, CheckCircle2, ChevronRight, Clock, Receipt, Sparkles, 
+  AlertTriangle, RefreshCw, Star, Crown, Check 
 } from 'lucide-react';
+import RazorpayModal from './RazorpayModal';
 
 export default function ProfilePage({ 
   currentUser, 
@@ -14,11 +16,16 @@ export default function ProfilePage({
   theme = 'royal',
   helpers = []
 }) {
-  const [activeSection, setActiveSection] = useState('garage'); // 'garage', 'rider_history', 'helper_history', 'payments'
+  const [activeSection, setActiveSection] = useState('garage'); // 'garage', 'rider_history', 'helper_history', 'payments', 'subscription'
   const isRoyal = theme === 'royal';
 
+  // Vehicles state & default vehicle selector (P0: Multiple vehicle profiles)
+  const [selectedDefaultId, setSelectedDefaultId] = useState(vehicles[0]?.id || '');
+  
   // Modal to add vehicle inside profile
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingVehicle, setEditingVehicle] = useState(null);
+
   const [brand, setBrand] = useState('Ather');
   const [modelName, setModelName] = useState('450X Gen 3');
   const [variant, setVariant] = useState('Pro Pack');
@@ -28,8 +35,19 @@ export default function ProfilePage({
   const [batteryPackModel, setBatteryPackModel] = useState('');
   const [regNumber, setRegNumber] = useState('');
 
+  // Complaint & Refund Workflow Modal (P0: Complaint handling, Refund or credit workflow)
+  const [showComplaintModal, setShowComplaintModal] = useState(false);
+  const [complaintTarget, setComplaintTarget] = useState(null);
+  const [complaintReason, setComplaintReason] = useState('PROVIDER_NO_SHOW');
+  const [complaintNotes, setComplaintNotes] = useState('');
+  const [refundRequested, setRefundRequested] = useState(true);
+
+  // Pro Subscription (P1: Monthly subscriptions)
+  const [isProSubscribed, setIsProSubscribed] = useState(false);
+  const [showSubModal, setShowSubModal] = useState(false);
+
   // Sample historical records for rider, helper, and payments (matching PRD & backend models)
-  const riderRescueHistory = [
+  const [riderRescueHistory, setRiderRescueHistory] = useState([
     {
       id: 'req_1082',
       date: '02 Nov 2026, 04:15 PM',
@@ -39,7 +57,8 @@ export default function ProfilePage({
       providerName: 'Ramesh Kumar (QuickEV Assist)',
       status: 'COMPLETED',
       amountPaid: 249,
-      unlockFee: 19
+      unlockFee: 19,
+      hasComplaint: false
     },
     {
       id: 'req_0941',
@@ -50,9 +69,10 @@ export default function ProfilePage({
       providerName: 'Sun Mobility / Quick Swap',
       status: 'COMPLETED',
       amountPaid: 199,
-      unlockFee: 19
+      unlockFee: 19,
+      hasComplaint: false
     }
-  ];
+  ]);
 
   const helperActivityHistory = [
     {
@@ -77,14 +97,15 @@ export default function ProfilePage({
     }
   ];
 
-  const paymentTransactions = [
+  const [paymentTransactions, setPaymentTransactions] = useState([
     {
       txId: 'pay_rzp_8941203',
       date: '02 Nov 2026, 04:16 PM',
       purpose: 'Emergency Roadside Contact Unlock Pass (Indiranagar)',
       amount: '₹19.00',
       method: 'Razorpay UPI (Google Pay)',
-      status: 'SUCCESS'
+      status: 'SUCCESS',
+      refundStatus: 'NONE'
     },
     {
       txId: 'pay_rzp_7731902',
@@ -92,7 +113,8 @@ export default function ProfilePage({
       purpose: 'Sahayak Community Helper Equipment Audit & Verification Pass',
       amount: '₹49.00',
       method: 'Razorpay UPI (PhonePe)',
-      status: 'SUCCESS'
+      status: 'SUCCESS',
+      refundStatus: 'NONE'
     },
     {
       txId: 'pay_rzp_6521884',
@@ -100,33 +122,105 @@ export default function ProfilePage({
       purpose: 'Emergency Roadside Contact Unlock Pass (Koramangala)',
       amount: '₹19.00',
       method: 'Razorpay UPI (Paytm)',
-      status: 'SUCCESS'
+      status: 'SUCCESS',
+      refundStatus: 'NONE'
     }
-  ];
+  ]);
 
-  const handleCreateVehicle = (e) => {
+  const handleOpenAddModal = () => {
+    setEditingVehicle(null);
+    setBrand('Ather');
+    setModelName('450X Gen 3');
+    setVariant('Pro Pack');
+    setYear(2024);
+    setConnectorType('ATHER_PROPRIETARY');
+    setHasSwappableBattery(false);
+    setBatteryPackModel('');
+    setRegNumber('');
+    setShowAddModal(true);
+  };
+
+  const handleOpenEditModal = (veh) => {
+    setEditingVehicle(veh);
+    setBrand(veh.brand);
+    setModelName(veh.modelName);
+    setVariant(veh.variant || '');
+    setYear(veh.year || 2024);
+    setConnectorType(veh.connectorType || '15A_AC_3PIN');
+    setHasSwappableBattery(Boolean(veh.hasSwappableBattery));
+    setBatteryPackModel(veh.batteryPackModel || '');
+    setRegNumber(veh.registrationNumber || '');
+    setShowAddModal(true);
+  };
+
+  const handleSaveVehicle = (e) => {
     e.preventDefault();
     if (!brand || !modelName) return;
 
-    onAddVehicle({
-      brand,
-      modelName,
-      variant,
-      year: Number(year),
-      batteryCapacityKwh: 3.8,
-      connectorType,
-      hasSwappableBattery,
-      batteryPackModel: batteryPackModel || (hasSwappableBattery ? `${brand} Modular Battery` : 'Fixed Battery'),
-      registrationNumber: regNumber
-    });
+    if (editingVehicle) {
+      if (onRemoveVehicle) onRemoveVehicle(editingVehicle.id);
+    }
+
+    if (onAddVehicle) {
+      onAddVehicle({
+        id: editingVehicle ? editingVehicle.id : `veh_${Date.now()}`,
+        brand,
+        modelName,
+        variant,
+        year: Number(year),
+        batteryCapacityKwh: 3.8,
+        connectorType,
+        hasSwappableBattery,
+        batteryPackModel: batteryPackModel || (hasSwappableBattery ? `${brand} Modular Battery` : 'Fixed Battery'),
+        registrationNumber: regNumber
+      });
+    }
 
     setShowAddModal(false);
+    setEditingVehicle(null);
     setRegNumber('');
+  };
+
+  const handleOpenComplaint = (target) => {
+    setComplaintTarget(target);
+    setComplaintReason('PROVIDER_NO_SHOW');
+    setComplaintNotes('');
+    setRefundRequested(true);
+    setShowComplaintModal(true);
+  };
+
+  const handleSubmitComplaint = (e) => {
+    e.preventDefault();
+    if (!complaintTarget) return;
+
+    // Process refund / complaint
+    setPaymentTransactions(prev => prev.map(p => {
+      if (p.txId === complaintTarget.txId || p.purpose.includes(complaintTarget.location || '')) {
+        return { ...p, refundStatus: 'CREDITED_INR_19' };
+      }
+      return p;
+    }));
+
+    setRiderRescueHistory(prev => prev.map(r => {
+      if (r.id === complaintTarget.id) {
+        return { ...r, hasComplaint: true };
+      }
+      return r;
+    }));
+
+    alert(`Complaint ticket #${Date.now().toString().slice(-6)} recorded. ₹19 platform fee refund credit has been authorized back to your account.`);
+    setShowComplaintModal(false);
+  };
+
+  const handleProSubscribeSuccess = (paymentDetails) => {
+    setShowSubModal(false);
+    setIsProSubscribed(true);
+    alert(`Congratulations! You are now subscribed to EV Sahayak Pro (${paymentDetails.paymentId}). Unlimited free contact unlocks are active for 30 days.`);
   };
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '32px 24px' }}>
-      {/* 1. Profile Hero Card */}
+      {/* 1. Profile Hero Card with Sign Out Button */}
       <div className="pro-card" style={{
         background: isRoyal ? '#ffffff' : '#0f172a',
         padding: '28px 32px',
@@ -156,9 +250,15 @@ export default function ProfilePage({
                 <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: isRoyal ? '#0f172a' : '#ffffff' }}>
                   {currentUser?.name || 'EV Rider'}
                 </h1>
-                <span className="badge-clean badge-blue">
-                  {currentUser?.role || 'MEMBER'}
-                </span>
+                {isProSubscribed ? (
+                  <span className="badge-clean badge-amber" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Crown size={12} /> PRO PASS ACTIVE
+                  </span>
+                ) : (
+                  <span className="badge-clean badge-blue">
+                    {currentUser?.role || 'MEMBER'}
+                  </span>
+                )}
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', marginTop: '6px', fontSize: '0.82rem', color: isRoyal ? '#64748b' : '#94a3b8' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -174,7 +274,7 @@ export default function ProfilePage({
             </div>
           </div>
 
-          {/* Sign Out Button in Profile Header */}
+          {/* Sign Out Button strictly in Profile Page */}
           <button
             onClick={onLogout}
             style={{
@@ -254,7 +354,7 @@ export default function ProfilePage({
           }}
         >
           <AlertCircle size={18} />
-          <span>Rescue Requests History</span>
+          <span>Rescue History</span>
         </button>
 
         <button
@@ -279,7 +379,7 @@ export default function ProfilePage({
           }}
         >
           <History size={18} />
-          <span>Helper Earnings & Activity</span>
+          <span>Helper Earnings History</span>
         </button>
 
         <button
@@ -304,306 +404,409 @@ export default function ProfilePage({
           }}
         >
           <CreditCard size={18} />
-          <span>Payment History</span>
+          <span>Payments & Invoices</span>
+        </button>
+
+        <button
+          onClick={() => setActiveSection('subscription')}
+          style={{
+            background: activeSection === 'subscription' 
+              ? (isRoyal ? '#1d4ed8' : '#2563eb') 
+              : 'transparent',
+            color: activeSection === 'subscription' 
+              ? '#ffffff' 
+              : (isRoyal ? '#475569' : '#94a3b8'),
+            border: 'none',
+            borderRadius: '10px',
+            padding: '9px 16px',
+            fontWeight: 700,
+            fontSize: '0.88rem',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            transition: 'all 0.15s ease'
+          }}
+        >
+          <Sparkles size={18} color="#fbbf24" />
+          <span>Pro Subscription (P1)</span>
         </button>
       </div>
 
-      {/* 3. Section Content */}
-      
-      {/* SECTION A: MY EV GARAGE (Shifted here per instructions) */}
+      {/* SECTION 1: MY EV GARAGE (P0: Multiple vehicle profiles - add, edit, select) */}
       {activeSection === 'garage' && (
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
             <div>
-              <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: isRoyal ? '#0f172a' : '#ffffff' }}>
-                My Electric Vehicle Garage
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: isRoyal ? '#0f172a' : '#ffffff' }}>
+                Registered Electric Vehicles
               </h2>
-              <p style={{ fontSize: '0.84rem', color: isRoyal ? '#475569' : '#94a3b8' }}>
-                Manage your electric scooters to enable automatic connector and battery compatibility matching.
+              <p style={{ fontSize: '0.82rem', color: isRoyal ? '#64748b' : '#94a3b8' }}>
+                Manage your electric scooters and choose your active vehicle for 1-click roadside rescues.
               </p>
             </div>
             <button
-              onClick={() => setShowAddModal(true)}
+              onClick={handleOpenAddModal}
               className="btn-primary"
-              style={{ padding: '9px 16px', fontSize: '0.85rem' }}
+              style={{ padding: '8px 16px', fontSize: '0.82rem' }}
             >
               <Plus size={16} />
-              <span>Add New EV</span>
+              <span>Add Vehicle</span>
             </button>
           </div>
 
           {vehicles.length === 0 ? (
-            <div className="pro-card" style={{
-              padding: '48px 24px',
-              textAlign: 'center',
-              border: isRoyal ? '1px dashed #cbd5e1' : '1px dashed #334155'
-            }}>
-              <div style={{
-                background: isRoyal ? 'rgba(29, 78, 216, 0.1)' : 'rgba(37, 99, 235, 0.15)',
-                width: '64px',
-                height: '64px',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 16px',
-                color: isRoyal ? '#1d4ed8' : '#3b82f6'
-              }}>
-                <Bike size={32} />
-              </div>
-              <h3 style={{ fontSize: '1.2rem', color: isRoyal ? '#0f172a' : '#ffffff', marginBottom: '6px' }}>
-                Your Garage is Empty
-              </h3>
-              <p style={{ fontSize: '0.85rem', color: isRoyal ? '#64748b' : '#94a3b8', maxWidth: '440px', margin: '0 auto 20px' }}>
-                Add your electric scooter (Ather, Ola, TVS, Vida, Bounce) so emergency helpers bring the right charger connector or battery pack.
+            <div className="pro-card" style={{ padding: '40px 20px', textAlign: 'center', background: isRoyal ? '#ffffff' : '#0f172a' }}>
+              <Bike size={44} color="#64748b" style={{ margin: '0 auto 12px' }} />
+              <h3 style={{ fontSize: '1.1rem', color: isRoyal ? '#0f172a' : '#ffffff', marginBottom: '6px' }}>Your Garage is Empty</h3>
+              <p style={{ fontSize: '0.82rem', color: isRoyal ? '#64748b' : '#94a3b8', maxWidth: '440px', margin: '0 auto 18px' }}>
+                Add your EV to enable compatibility-aware charging filters and instant emergency roadside assistance.
               </p>
-              <button onClick={() => setShowAddModal(true)} className="btn-primary">
+              <button onClick={handleOpenAddModal} className="btn-primary" style={{ padding: '8px 18px' }}>
                 <Plus size={16} />
-                <span>Add Your First EV</span>
+                <span>Register Your First EV</span>
               </button>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
-              {vehicles.map(v => (
-                <div key={v.id} className="pro-card" style={{ padding: '22px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{
-                        background: isRoyal ? 'rgba(29, 78, 216, 0.1)' : 'rgba(59, 130, 246, 0.15)',
-                        color: isRoyal ? '#1d4ed8' : '#60a5fa',
-                        padding: '10px',
-                        borderRadius: '10px'
-                      }}>
-                        <Bike size={24} />
-                      </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '18px' }}>
+              {vehicles.map((veh, index) => {
+                const isDefault = selectedDefaultId ? selectedDefaultId === veh.id : index === 0;
+
+                return (
+                  <div key={veh.id || index} className="pro-card" style={{
+                    background: isRoyal ? '#ffffff' : '#0f172a',
+                    padding: '20px',
+                    borderColor: isDefault ? (isRoyal ? '#1d4ed8' : '#3b82f6') : (isRoyal ? '#cbd5e1' : '#1e293b'),
+                    position: 'relative'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                       <div>
-                        <h4 style={{ fontSize: '1.15rem', fontWeight: 800, color: isRoyal ? '#0f172a' : '#ffffff' }}>
-                          {v.brand} {v.modelName}
-                        </h4>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: isRoyal ? '#0f172a' : '#ffffff' }}>
+                            {veh.brand} {veh.modelName}
+                          </h3>
+                        </div>
                         <div style={{ fontSize: '0.78rem', color: isRoyal ? '#64748b' : '#94a3b8' }}>
-                          {v.variant} • Year {v.year}
+                          {veh.variant || 'Standard'} • Year {veh.year || 2024}
                         </div>
                       </div>
+
+                      {isDefault ? (
+                        <span className="badge-clean badge-green" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <Check size={12} /> Active Vehicle
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => setSelectedDefaultId(veh.id)}
+                          style={{
+                            background: 'transparent',
+                            border: isRoyal ? '1px solid #cbd5e1' : '1px solid #334155',
+                            borderRadius: '6px',
+                            padding: '3px 8px',
+                            fontSize: '0.72rem',
+                            color: isRoyal ? '#1d4ed8' : '#38bdf8',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Set Active
+                        </button>
+                      )}
                     </div>
 
-                    <button
-                      onClick={() => onRemoveVehicle(v.id)}
-                      style={{
-                        background: 'transparent',
-                        border: 'none',
-                        color: '#dc2626',
-                        cursor: 'pointer',
-                        padding: '6px'
-                      }}
-                      title="Remove vehicle"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-
-                  <div style={{
-                    background: isRoyal ? '#f8fafc' : '#090d16',
-                    border: isRoyal ? '1px solid #e2e8f0' : '1px solid #1e293b',
-                    borderRadius: '10px',
-                    padding: '12px',
-                    fontSize: '0.8rem',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '6px',
-                    marginBottom: '16px'
-                  }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ color: isRoyal ? '#64748b' : '#94a3b8' }}>Charging Connector:</span>
-                      <strong style={{ color: isRoyal ? '#1d4ed8' : '#38bdf8' }}>{v.connectorType}</strong>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ color: isRoyal ? '#64748b' : '#94a3b8' }}>Battery System:</span>
-                      <strong style={{ color: v.hasSwappableBattery ? (isRoyal ? '#059669' : '#00d293') : (isRoyal ? '#64748b' : '#94a3b8') }}>
-                        {v.hasSwappableBattery ? '🔋 Swappable Modular Pack' : '⚡ Fixed Battery'}
-                      </strong>
-                    </div>
-                    {v.batteryPackModel && (
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ color: isRoyal ? '#64748b' : '#94a3b8' }}>Pack Spec:</span>
-                        <span style={{ color: isRoyal ? '#0f172a' : '#ffffff' }}>{v.batteryPackModel}</span>
+                    <div style={{ background: isRoyal ? '#f8fafc' : '#090d16', border: isRoyal ? '1px solid #e2e8f0' : '1px solid #1e293b', borderRadius: '10px', padding: '12px', marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <div style={{ fontSize: '0.78rem', color: isRoyal ? '#475569' : '#cbd5e1', display: 'flex', justifyContent: 'space-between' }}>
+                        <span>Charging Connector:</span>
+                        <b>{veh.connectorType?.replace(/_/g, ' ') || '15A AC 3-Pin'}</b>
                       </div>
-                    )}
-                  </div>
+                      <div style={{ fontSize: '0.78rem', color: isRoyal ? '#475569' : '#cbd5e1', display: 'flex', justifyContent: 'space-between' }}>
+                        <span>Battery System:</span>
+                        <b style={{ color: veh.hasSwappableBattery ? '#00d293' : (isRoyal ? '#1d4ed8' : '#38bdf8') }}>
+                          {veh.hasSwappableBattery ? '🔋 Modular Swappable' : '⚡ Fixed Battery'}
+                        </b>
+                      </div>
+                      {veh.registrationNumber && (
+                        <div style={{ fontSize: '0.78rem', color: isRoyal ? '#475569' : '#cbd5e1', display: 'flex', justifyContent: 'space-between' }}>
+                          <span>Registration:</span>
+                          <b>{veh.registrationNumber}</b>
+                        </div>
+                      )}
+                    </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem', color: isRoyal ? '#059669' : '#00d293' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <CheckCircle2 size={14} /> Ready for Instant Rescue Matching
-                    </span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '10px', borderTop: isRoyal ? '1px solid #e2e8f0' : '1px solid #1e293b' }}>
+                      <button
+                        onClick={() => handleOpenEditModal(veh)}
+                        className="btn-secondary"
+                        style={{ padding: '6px 12px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+                      >
+                        <Edit size={13} />
+                        <span>Edit</span>
+                      </button>
+
+                      {onRemoveVehicle && (
+                        <button
+                          onClick={() => onRemoveVehicle(veh.id)}
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            color: '#dc2626',
+                            fontSize: '0.75rem',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                        >
+                          <Trash2 size={13} />
+                          <span>Remove</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
       )}
 
-      {/* SECTION B: RESCUE REQUESTS HISTORY */}
+      {/* SECTION 2: RIDER RESCUE HISTORY (P0: Complaints & Refund Handling) */}
       {activeSection === 'rider_history' && (
-        <div>
-          <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: isRoyal ? '#0f172a' : '#ffffff', marginBottom: '6px' }}>
-            Emergency Rescue Requests History
-          </h2>
-          <p style={{ fontSize: '0.84rem', color: isRoyal ? '#475569' : '#94a3b8', marginBottom: '20px' }}>
-            Logs of your roadside emergency dispatches, matched helpers, and completed rescues.
-          </p>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {riderRescueHistory.map(item => (
-              <div key={item.id} className="pro-card" style={{ padding: '18px 22px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px' }}>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                      <span className="badge-clean badge-blue">{item.serviceType}</span>
-                      <strong style={{ fontSize: '0.95rem', color: isRoyal ? '#0f172a' : '#ffffff' }}>
-                        {item.serviceTitle}
-                      </strong>
-                    </div>
-                    <div style={{ fontSize: '0.78rem', color: isRoyal ? '#64748b' : '#94a3b8', display: 'flex', flexWrap: 'wrap', gap: '12px', marginTop: '4px' }}>
-                      <span>📅 {item.date}</span>
-                      <span>📍 {item.location}</span>
-                      <span>🤝 Provider: {item.providerName}</span>
-                    </div>
-                  </div>
-
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '1.1rem', fontWeight: 800, color: isRoyal ? '#059669' : '#00d293' }}>
-                      ₹{item.amountPaid}
-                    </div>
-                    <span style={{ fontSize: '0.72rem', color: isRoyal ? '#64748b' : '#94a3b8' }}>
-                      Status: <strong style={{ color: isRoyal ? '#059669' : '#00d293' }}>{item.status}</strong>
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: isRoyal ? '#0f172a' : '#ffffff' }}>
+              Past Emergency Rescues
+            </h2>
+            <span style={{ fontSize: '0.8rem', color: isRoyal ? '#64748b' : '#94a3b8' }}>
+              Protected under EV Sahayak 100% Service Guarantee
+            </span>
           </div>
-        </div>
-      )}
 
-      {/* SECTION C: HELPER ACTIVITY HISTORY */}
-      {activeSection === 'helper_history' && (
-        <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
-            <div>
-              <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: isRoyal ? '#0f172a' : '#ffffff' }}>
-                Helper Activity & Rescue Payouts
-              </h2>
-              <p style={{ fontSize: '0.84rem', color: isRoyal ? '#475569' : '#94a3b8' }}>
-                Summary of roadside assistance you provided to stranded EV riders and earned platform payouts.
-              </p>
-            </div>
-            <div style={{
-              background: isRoyal ? 'rgba(5, 150, 105, 0.1)' : 'rgba(0, 210, 147, 0.1)',
-              border: isRoyal ? '1px solid rgba(5, 150, 105, 0.25)' : '1px solid rgba(0, 210, 147, 0.25)',
-              padding: '8px 16px',
-              borderRadius: '10px',
-              fontSize: '0.88rem',
-              color: isRoyal ? '#059669' : '#00d293',
-              fontWeight: 700
+          {riderRescueHistory.map(req => (
+            <div key={req.id} className="pro-card" style={{
+              background: isRoyal ? '#ffffff' : '#0f172a',
+              padding: '20px',
+              border: isRoyal ? '1px solid #cbd5e1' : '1px solid #1e293b'
             }}>
-              Total Earned: ₹498.00
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {helperActivityHistory.map(item => (
-              <div key={item.id} className="pro-card" style={{ padding: '18px 22px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px' }}>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                      <span className="badge-clean badge-green">COMPLETED RESCUE</span>
-                      <strong style={{ fontSize: '0.95rem', color: isRoyal ? '#0f172a' : '#ffffff' }}>
-                        {item.serviceProvided}
-                      </strong>
-                    </div>
-                    <div style={{ fontSize: '0.78rem', color: isRoyal ? '#64748b' : '#94a3b8', display: 'flex', flexWrap: 'wrap', gap: '12px', marginTop: '4px' }}>
-                      <span>📅 {item.date}</span>
-                      <span>🛵 Rider: {item.riderName}</span>
-                      <span>📍 {item.location}</span>
-                      <span>⭐ Rating: {item.rating} / 5.0</span>
-                    </div>
-                  </div>
-
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '1.15rem', fontWeight: 800, color: isRoyal ? '#059669' : '#00d293' }}>
-                      +₹{item.earnedAmount}
-                    </div>
-                    <span style={{ fontSize: '0.72rem', color: isRoyal ? '#059669' : '#00d293', fontWeight: 600 }}>
-                      Payout Settled
-                    </span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                <div>
+                  <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: isRoyal ? '#0f172a' : '#ffffff' }}>
+                    {req.serviceTitle}
+                  </h3>
+                  <div style={{ fontSize: '0.78rem', color: isRoyal ? '#64748b' : '#94a3b8', marginTop: '2px' }}>
+                    {req.date} • Reference ID: {req.id}
                   </div>
                 </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span className="badge-clean badge-green">{req.status}</span>
+                </div>
               </div>
-            ))}
-          </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', background: isRoyal ? '#f8fafc' : '#090d16', padding: '12px', borderRadius: '10px', marginBottom: '14px' }}>
+                <div style={{ fontSize: '0.8rem', color: isRoyal ? '#475569' : '#cbd5e1' }}>
+                  <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem' }}>Assigned Helper</span>
+                  <b>{req.providerName}</b>
+                </div>
+                <div style={{ fontSize: '0.8rem', color: isRoyal ? '#475569' : '#cbd5e1' }}>
+                  <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem' }}>Location Pin</span>
+                  <b>{req.location}</b>
+                </div>
+                <div style={{ fontSize: '0.8rem', color: isRoyal ? '#475569' : '#cbd5e1' }}>
+                  <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem' }}>Total Paid</span>
+                  <b>₹{req.amountPaid} (inc. ₹{req.unlockFee} pass)</b>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '10px', borderTop: isRoyal ? '1px solid #e2e8f0' : '1px solid #1e293b' }}>
+                <span style={{ fontSize: '0.75rem', color: '#00d293', fontWeight: 600 }}>
+                  ✔ Service Delivered Successfully
+                </span>
+
+                <button
+                  onClick={() => handleOpenComplaint(req)}
+                  style={{
+                    background: 'transparent',
+                    border: '1px solid #f59e0b',
+                    borderRadius: '8px',
+                    padding: '6px 12px',
+                    color: '#f59e0b',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                >
+                  <AlertTriangle size={13} />
+                  <span>Report Problem / Request Refund</span>
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
-      {/* SECTION D: PAYMENT TRANSACTIONS */}
-      {activeSection === 'payments' && (
-        <div>
-          <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: isRoyal ? '#0f172a' : '#ffffff', marginBottom: '6px' }}>
-            Razorpay Payment & Gateway Invoices
+      {/* SECTION 3: HELPER EARNINGS HISTORY */}
+      {activeSection === 'helper_history' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: isRoyal ? '#0f172a' : '#ffffff' }}>
+            Community Helper Payouts & Rescues
           </h2>
-          <p style={{ fontSize: '0.84rem', color: isRoyal ? '#475569' : '#94a3b8', marginBottom: '20px' }}>
-            Official transaction references for platform unlocks (₹19) and helper audits (₹49).
+
+          {helperActivityHistory.map(hlp => (
+            <div key={hlp.id} className="pro-card" style={{
+              background: isRoyal ? '#ffffff' : '#0f172a',
+              padding: '18px',
+              border: isRoyal ? '1px solid #cbd5e1' : '1px solid #1e293b'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <div>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 700, color: isRoyal ? '#0f172a' : '#ffffff' }}>
+                    Rescued: {hlp.riderName}
+                  </h3>
+                  <div style={{ fontSize: '0.78rem', color: isRoyal ? '#64748b' : '#94a3b8' }}>
+                    {hlp.date} • {hlp.location}
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#00d293' }}>
+                    +₹{hlp.earnedAmount}
+                  </div>
+                  <span className="badge-clean badge-green" style={{ fontSize: '0.68rem' }}>{hlp.status}</span>
+                </div>
+              </div>
+              <div style={{ fontSize: '0.78rem', color: isRoyal ? '#475569' : '#cbd5e1' }}>
+                Service: {hlp.serviceProvided} • Rider Rating: ⭐ <b>{hlp.rating}</b>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* SECTION 4: PAYMENTS & INVOICES */}
+      {activeSection === 'payments' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: isRoyal ? '#0f172a' : '#ffffff' }}>
+              Razorpay Transactions & Invoices
+            </h2>
+          </div>
+
+          {paymentTransactions.map(tx => (
+            <div key={tx.txId} className="pro-card" style={{
+              background: isRoyal ? '#ffffff' : '#0f172a',
+              padding: '18px',
+              border: isRoyal ? '1px solid #cbd5e1' : '1px solid #1e293b'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: '0.95rem', color: isRoyal ? '#0f172a' : '#ffffff' }}>
+                    {tx.purpose}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: isRoyal ? '#64748b' : '#94a3b8', marginTop: '2px' }}>
+                    Tx ID: {tx.txId} • {tx.date} • via {tx.method}
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 800, color: isRoyal ? '#1d4ed8' : '#38bdf8' }}>
+                    {tx.amount}
+                  </div>
+                  <span className={`badge-clean ${tx.refundStatus === 'CREDITED_INR_19' ? 'badge-amber' : 'badge-green'}`}>
+                    {tx.refundStatus === 'CREDITED_INR_19' ? 'REFUND CREDITED' : tx.status}
+                  </span>
+                </div>
+              </div>
+
+              {tx.refundStatus === 'NONE' && (
+                <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '8px', borderTop: isRoyal ? '1px solid #f1f5f9' : '1px solid #1e293b' }}>
+                  <button
+                    onClick={() => handleOpenComplaint(tx)}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: isRoyal ? '#1d4ed8' : '#38bdf8',
+                      fontSize: '0.75rem',
+                      cursor: 'pointer',
+                      textDecoration: 'underline'
+                    }}
+                  >
+                    Dispute Transaction / Request Refund
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* SECTION 5: EV SAHAYAK PRO MONTHLY SUBSCRIPTION (P1: Monthly subscriptions) */}
+      {activeSection === 'subscription' && (
+        <div className="pro-card" style={{
+          background: isRoyal ? '#ffffff' : '#0f172a',
+          padding: '32px',
+          border: isRoyal ? '1px solid #cbd5e1' : '1px solid #1e293b'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+            <Sparkles size={24} color="#fbbf24" />
+            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: isRoyal ? '#0f172a' : '#ffffff' }}>
+              EV Sahayak Pro Monthly Membership
+            </h2>
+          </div>
+          <p style={{ fontSize: '0.88rem', color: isRoyal ? '#475569' : '#94a3b8', marginBottom: '24px', maxWidth: '640px' }}>
+            Designed for regular EV commuters and delivery fleet riders across Bengaluru. Never worry about roadside breakdown access charges.
           </p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {paymentTransactions.map(tx => (
-              <div key={tx.txId} className="pro-card" style={{ padding: '16px 20px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{
-                      background: isRoyal ? 'rgba(29, 78, 216, 0.1)' : 'rgba(37, 99, 235, 0.15)',
-                      color: isRoyal ? '#1d4ed8' : '#60a5fa',
-                      padding: '10px',
-                      borderRadius: '10px'
-                    }}>
-                      <Receipt size={20} />
-                    </div>
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: '0.9rem', color: isRoyal ? '#0f172a' : '#ffffff' }}>
-                        {tx.purpose}
-                      </div>
-                      <div style={{ fontSize: '0.75rem', color: isRoyal ? '#64748b' : '#94a3b8', marginTop: '2px' }}>
-                        TxID: <code style={{ color: isRoyal ? '#1d4ed8' : '#38bdf8' }}>{tx.txId}</code> • {tx.method} • {tx.date}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '1.05rem', fontWeight: 800, color: isRoyal ? '#0f172a' : '#ffffff' }}>
-                      {tx.amount}
-                    </div>
-                    <span className="badge-clean badge-green" style={{ fontSize: '0.68rem', marginTop: '3px' }}>
-                      {tx.status}
-                    </span>
-                  </div>
-                </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '28px' }}>
+            <div style={{ background: isRoyal ? '#f8fafc' : '#090d16', border: isRoyal ? '1px solid #e2e8f0' : '1px solid #1e293b', borderRadius: '12px', padding: '20px' }}>
+              <div style={{ fontSize: '1rem', fontWeight: 700, color: isRoyal ? '#0f172a' : '#ffffff', marginBottom: '12px' }}>
+                Pro Plan Benefits
               </div>
-            ))}
+              <ul style={{ paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.82rem', color: isRoyal ? '#475569' : '#cbd5e1' }}>
+                <li><b>Unlimited Free Contact Unlocks:</b> ₹19 platform fee waived for 30 days.</li>
+                <li><b>Priority Helper Dispatch:</b> Requests sent to nearest top-tier helpers first.</li>
+                <li><b>Direct Tele-Assistance:</b> 24/7 dedicated helpline pin.</li>
+                <li><b>Exclusive Route Alerts:</b> Notifications when new fast grids go live on your commute.</li>
+              </ul>
+            </div>
+
+            <div style={{ background: isRoyal ? '#eff6ff' : '#0f1a33', border: isRoyal ? '1px solid #bfdbfe' : '1px solid #1d4ed8', borderRadius: '12px', padding: '24px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+              <div style={{ fontSize: '0.85rem', color: isRoyal ? '#1d4ed8' : '#60a5fa', fontWeight: 700 }}>
+                MONTHLY PASS
+              </div>
+              <div style={{ fontSize: '2.5rem', fontWeight: 800, color: isRoyal ? '#0f172a' : '#ffffff', margin: '8px 0' }}>
+                ₹199 <span style={{ fontSize: '0.9rem', color: '#64748b', fontWeight: 400 }}>/ month</span>
+              </div>
+              {isProSubscribed ? (
+                <div style={{ color: '#00d293', fontWeight: 700, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <CheckCircle2 size={18} />
+                  <span>Your Subscription is Active</span>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowSubModal(true)}
+                  className="btn-primary"
+                  style={{ width: '100%', padding: '12px', fontSize: '0.9rem' }}
+                >
+                  Subscribe for ₹199 / mo
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
 
-      {/* Add EV Modal inside Profile */}
+      {/* Modal: Add or Edit Electric Vehicle */}
       {showAddModal && (
         <div className="modal-overlay">
-          <div className="pro-card" style={{ maxWidth: '480px', width: '100%', padding: '24px' }}>
+          <div className="pro-card" style={{ maxWidth: '480px', width: '100%', padding: '24px', background: isRoyal ? '#ffffff' : '#0f172a' }}>
             <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '6px', color: isRoyal ? '#0f172a' : '#ffffff' }}>
-              Add Electric Vehicle to Garage
+              {editingVehicle ? 'Edit Vehicle Profile' : 'Add Vehicle to EV Garage'}
             </h3>
             <p style={{ fontSize: '0.82rem', color: isRoyal ? '#64748b' : '#94a3b8', marginBottom: '16px' }}>
-              Save vehicle specs for instant emergency roadside compatibility.
+              Configure vehicle connector and battery specs for compatibility filters.
             </p>
 
-            <form onSubmit={handleCreateVehicle} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <form onSubmit={handleSaveVehicle} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
                 <label style={{ fontSize: '0.8rem', color: isRoyal ? '#475569' : '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
                   Brand & Make *
@@ -639,6 +842,19 @@ export default function ProfilePage({
 
               <div>
                 <label style={{ fontSize: '0.8rem', color: isRoyal ? '#475569' : '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                  Registration Number
+                </label>
+                <input
+                  type="text"
+                  placeholder="KA-01-EV-1234"
+                  value={regNumber}
+                  onChange={(e) => setRegNumber(e.target.value)}
+                  className="input-pro"
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.8rem', color: isRoyal ? '#475569' : '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
                   Primary Charging Connector *
                 </label>
                 <select
@@ -666,21 +882,6 @@ export default function ProfilePage({
                 </label>
               </div>
 
-              {hasSwappableBattery && (
-                <div>
-                  <label style={{ fontSize: '0.8rem', color: isRoyal ? '#475569' : '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
-                    Battery Pack Specification
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Bounce Dock, Hero Vida Removable Pack"
-                    value={batteryPackModel}
-                    onChange={(e) => setBatteryPackModel(e.target.value)}
-                    className="input-pro"
-                  />
-                </div>
-              )}
-
               <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '12px' }}>
                 <button
                   type="button"
@@ -690,13 +891,90 @@ export default function ProfilePage({
                   Cancel
                 </button>
                 <button type="submit" className="btn-primary">
-                  Save to Garage
+                  {editingVehicle ? 'Update Vehicle' : 'Save to Garage'}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
+
+      {/* Modal: Complaint Handling & Instant Refund Credit (P0: Complaint handling, Refund workflow) */}
+      {showComplaintModal && complaintTarget && (
+        <div className="modal-overlay">
+          <div className="pro-card" style={{ maxWidth: '460px', width: '100%', padding: '24px', background: isRoyal ? '#ffffff' : '#0f172a' }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#dc2626', marginBottom: '6px' }}>
+              Report Issue & Request Refund
+            </h3>
+            <p style={{ fontSize: '0.82rem', color: isRoyal ? '#64748b' : '#94a3b8', marginBottom: '16px' }}>
+              Reporting item: <b>{complaintTarget.serviceTitle || complaintTarget.purpose || complaintTarget.txId}</b>
+            </p>
+
+            <form onSubmit={handleSubmitComplaint} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ fontSize: '0.8rem', color: isRoyal ? '#475569' : '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                  Problem Reason *
+                </label>
+                <select
+                  value={complaintReason}
+                  onChange={(e) => setComplaintReason(e.target.value)}
+                  className="input-pro"
+                >
+                  <option value="PROVIDER_NO_SHOW">Helper did not arrive within committed time</option>
+                  <option value="UNRESPONSIVE_PHONE">Helper telephone was unreachable or switch off</option>
+                  <option value="INCORRECT_EQUIPMENT">Charger connector was incompatible with my vehicle</option>
+                  <option value="PRICE_DISCREPANCY">Helper requested more money than confirmed rate</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.8rem', color: isRoyal ? '#475569' : '#94a3b8', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
+                  Additional Notes
+                </label>
+                <textarea
+                  value={complaintNotes}
+                  onChange={(e) => setComplaintNotes(e.target.value)}
+                  rows={3}
+                  className="input-pro"
+                  placeholder="Explain what happened for admin review..."
+                />
+              </div>
+
+              <div style={{ background: isRoyal ? '#fff1f2' : 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', padding: '10px 12px' }}>
+                <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#dc2626' }}>
+                  Automatic Refund Eligibility
+                </div>
+                <div style={{ fontSize: '0.72rem', color: isRoyal ? '#64748b' : '#cbd5e1' }}>
+                  Per PRD Module C, eligible helper failures qualify for an instant ₹19 credit to your account.
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowComplaintModal(false)}
+                  className="btn-secondary"
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="btn-primary" style={{ background: '#dc2626' }}>
+                  Submit Complaint & Claim Refund
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Razorpay Modal for Pro Subscription */}
+      <RazorpayModal
+        isOpen={showSubModal}
+        onClose={() => setShowSubModal(false)}
+        onSuccess={handleProSubscribeSuccess}
+        amount={199}
+        title="EV Sahayak Pro Monthly Pass"
+        description="Unlimited free emergency contact unlocks + priority roadside dispatch"
+      />
     </div>
   );
 }
