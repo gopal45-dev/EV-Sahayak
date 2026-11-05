@@ -33,9 +33,9 @@ const getStoredLanguage = () => {
 const getStoredTheme = () => {
   try {
     const saved = localStorage.getItem(THEME_STORAGE_KEY);
-    if (saved === 'royal' || saved === 'obsidian') return saved;
+    if (saved === 'honeybee' || saved === 'obsidian' || saved === 'royal') return saved;
   } catch (e) {}
-  return 'royal'; // Default to user requested theme: white, red and royal blue!
+  return 'honeybee'; // Default to user requested theme: Honeybee Yellow, White, and Black margin lines!
 };
 
 // Retrieve session from localStorage; valid for 7 days
@@ -79,7 +79,7 @@ const getStoredVehicles = () => {
 };
 
 export default function App() {
-  // Theme state: 'royal' (White, Red & Royal Blue) vs 'obsidian' (Dark)
+  // Theme state: 'royal' (Honeybee Yellow, White & Black) vs 'obsidian' (Dark)
   const [theme, setTheme] = useState(() => getStoredTheme());
   const [language, setLanguage] = useState(() => getStoredLanguage());
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -94,14 +94,14 @@ export default function App() {
 
   // Sync theme class to document body
   useEffect(() => {
-    document.body.className = theme === 'royal' ? 'theme-royal' : 'theme-obsidian';
+    document.body.className = theme === 'obsidian' ? 'theme-obsidian' : 'theme-honeybee';
     try {
       localStorage.setItem(THEME_STORAGE_KEY, theme);
     } catch (e) {}
   }, [theme]);
 
   const toggleTheme = () => {
-    setTheme(prev => prev === 'royal' ? 'obsidian' : 'royal');
+    setTheme(prev => prev === 'obsidian' ? 'honeybee' : 'obsidian');
   };
 
   // Session stays logged in across refresh for at least 7 days unless logged out
@@ -349,7 +349,7 @@ export default function App() {
 
   // 1. Initial State: If not logged in, render the Login Page first
   if (!currentUser) {
-    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+    return <LoginPage onLoginSuccess={handleLoginSuccess} theme={theme} />;
   }
 
   // 2. Admin Role: If admin logged in (guptagopaldilipd@gmail.com), render dedicated Admin Workspace
@@ -361,6 +361,7 @@ export default function App() {
         stations={stations}
         helpers={helpers}
         onSwitchToRider={() => handleTabChange('dashboard')}
+        theme={theme}
       />
     );
   }
@@ -415,6 +416,7 @@ export default function App() {
             <EmergencyAssistance
               currentUser={currentUser}
               vehicles={vehicles}
+              theme={theme}
               onNavigateToGarage={() => handleTabChange('profile')}
               onUnlockContact={(entitlement) => {
                 console.log('Unlocked contact pass entitlement:', entitlement);
@@ -425,6 +427,7 @@ export default function App() {
           {activeTab === 'charging' && (
             <StationFinder
               stations={stations}
+              theme={theme}
               onReportStation={handleReportStation}
               userVehicles={vehicles}
             />
@@ -434,6 +437,7 @@ export default function App() {
             <HelperPortal
               currentUser={currentUser}
               helpers={helpers}
+              theme={theme}
               onRegisterHelper={handleRegisterHelper}
               onToggleStatus={handleToggleHelperStatus}
             />
@@ -469,23 +473,22 @@ export default function App() {
 
         {/* Footer */}
         <footer style={{
-          borderTop: theme === 'royal' ? '1px solid #e2e8f0' : '1px solid #1e293b',
-          background: theme === 'royal' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(9, 13, 22, 0.9)',
-          backdropFilter: 'blur(8px)',
+          borderTop: theme === 'obsidian' ? '1.5px solid #27272a' : '1.5px solid #18181b',
+          background: theme === 'obsidian' ? '#121215' : '#ffffff',
           padding: '20px 24px',
           fontSize: '0.78rem',
-          color: theme === 'royal' ? '#64748b' : '#64748b',
+          color: theme === 'obsidian' ? '#a1a1aa' : '#52525b',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           flexWrap: 'wrap',
           gap: '10px'
         }}>
-          <div>
-            EV Sahayak (ईवी सहायक) • Bengaluru Pilot Network
+          <div style={{ fontWeight: 600 }}>
+            EV Sahayak (ईवी सहायक) • Bengaluru Industrial EV Network
           </div>
-          <div style={{ fontSize: '0.72rem', color: theme === 'royal' ? '#64748b' : '#475569' }}>
-            Logged in as {currentUser.name} • Theme: {theme === 'royal' ? 'Royal Light (White/Red/Blue)' : 'Obsidian Dark'} • 3D Visualizer Active
+          <div style={{ fontSize: '0.72rem', color: theme === 'obsidian' ? '#71717a' : '#71717a' }}>
+            Logged in as {currentUser.name} • Theme: {theme === 'obsidian' ? 'Honeybee Obsidian' : 'Honeybee Yellow & Architectural White'}
           </div>
         </footer>
       </div>

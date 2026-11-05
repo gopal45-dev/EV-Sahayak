@@ -11,7 +11,8 @@ import {
   notifyRiderOfHelperEnRoute 
 } from '../utils/notifications';
 
-export default function EmergencyAssistance({ vehicles = [], onUnlockContact, currentUser, onNavigateToGarage }) {
+export default function EmergencyAssistance({ vehicles = [], onUnlockContact, currentUser, onNavigateToGarage, theme = 'honeybee' }) {
+  const isHoneybee = theme !== 'obsidian';
   const [step, setStep] = useState(1); // 1: Form, 2: Provider Readiness & Candidates, 3: Unlocked Details
   const [notifPermission, setNotifPermission] = useState(() => getNotificationPermission());
 
@@ -284,13 +285,13 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
       {/* Top Header */}
       <div style={{ marginBottom: '28px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-          <span className="badge-clean badge-blue">EMERGENCY ASSISTANCE</span>
-          <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Device Location Protected</span>
+          <span className="badge-clean badge-yellow">EMERGENCY ASSISTANCE</span>
+          <span style={{ fontSize: '0.8rem', color: isHoneybee ? '#71717a' : '#a1a1aa', fontWeight: 600 }}>Device Location Protected</span>
         </div>
-        <h1 style={{ fontSize: '2.1rem', color: '#ffffff', marginBottom: '6px' }}>
+        <h1 style={{ fontSize: '2.1rem', fontWeight: 900, color: isHoneybee ? '#000000' : '#f4f4f5', marginBottom: '6px' }}>
           Electric Vehicle Roadside Assistance
         </h1>
-        <p style={{ color: '#94a3b8', fontSize: '0.92rem', maxWidth: '680px' }}>
+        <p style={{ color: isHoneybee ? '#52525b' : '#a1a1aa', fontSize: '0.92rem', maxWidth: '680px' }}>
           Select your EV and dispatch nearby verified assistance. The platform matches you based on your model's exact battery & charging compatibility.
         </p>
       </div>
@@ -301,24 +302,25 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
           {/* Helper Dispatch Notification Permission Banner */}
           {notifPermission !== 'granted' && (
             <div style={{
-              background: 'rgba(37, 99, 235, 0.08)',
-              border: '1px solid rgba(37, 99, 235, 0.25)',
-              borderRadius: '12px',
+              background: isHoneybee ? '#fefce8' : '#18181b',
+              border: isHoneybee ? '1.5px solid #18181b' : '1.5px solid #27272a',
+              borderRadius: '8px',
               padding: '12px 16px',
               marginBottom: '20px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               flexWrap: 'wrap',
-              gap: '12px'
+              gap: '12px',
+              boxShadow: isHoneybee ? '2px 2px 0px #000000' : 'none'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Bell size={18} color="#38bdf8" />
+                <Bell size={18} color="#ca8a04" />
                 <div>
-                  <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#ffffff' }}>
+                  <div style={{ fontSize: '0.82rem', fontWeight: 800, color: isHoneybee ? '#000000' : '#f4f4f5' }}>
                     Enable Push Notifications for Real-Time Dispatch
                   </div>
-                  <div style={{ fontSize: '0.74rem', color: '#94a3b8' }}>
+                  <div style={{ fontSize: '0.74rem', color: isHoneybee ? '#71717a' : '#a1a1aa' }}>
                     Alert nearby helpers immediately and receive live arrival pings on your screen.
                   </div>
                 </div>
@@ -353,8 +355,8 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
 
               {vehicles.length === 0 ? (
                 <div style={{
-                  background: '#090d16',
-                  border: '1px dashed #334155',
+                  background: isHoneybee ? '#fafafa' : '#090d16',
+                  border: isHoneybee ? '1.5px dashed #18181b' : '1px dashed #334155',
                   borderRadius: '12px',
                   padding: '20px',
                   display: 'flex',
@@ -364,10 +366,10 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
                   flexWrap: 'wrap'
                 }}>
                   <div>
-                    <div style={{ fontWeight: 600, color: '#f8fafc', fontSize: '0.9rem', marginBottom: '4px' }}>
+                    <div style={{ fontWeight: 600, color: isHoneybee ? '#000000' : '#f8fafc', fontSize: '0.9rem', marginBottom: '4px' }}>
                       No vehicles found in My EV Garage
                     </div>
-                    <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                    <div style={{ fontSize: '0.8rem', color: isHoneybee ? '#52525b' : '#94a3b8' }}>
                       Add your electric scooter in My EV Garage first to request compatible emergency rescue.
                     </div>
                   </div>
@@ -389,22 +391,23 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
                       key={v.id}
                       onClick={() => setSelectedVehicleId(v.id)}
                       style={{
-                        background: selectedVehicleId === v.id ? '#172554' : '#0b1120',
-                        border: selectedVehicleId === v.id ? '1px solid #3b82f6' : '1px solid #1e293b',
-                        borderRadius: '12px',
+                        background: selectedVehicleId === v.id ? (isHoneybee ? '#fef08a' : '#18181b') : (isHoneybee ? '#ffffff' : '#121215'),
+                        border: selectedVehicleId === v.id ? (isHoneybee ? '2px solid #000000' : '2px solid #facc15') : (isHoneybee ? '1.5px solid #18181b' : '1.5px solid #27272a'),
+                        borderRadius: '8px',
                         padding: '14px',
                         cursor: 'pointer',
+                        boxShadow: selectedVehicleId === v.id ? '2px 2px 0px #000000' : 'none',
                         transition: 'all 0.15s ease'
                       }}
                     >
-                      <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#ffffff' }}>
+                      <div style={{ fontWeight: 800, fontSize: '0.95rem', color: isHoneybee ? '#000000' : '#f4f4f5' }}>
                         {v.brand} {v.modelName}
                       </div>
-                      <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '2px' }}>
+                      <div style={{ fontSize: '0.75rem', color: isHoneybee ? '#52525b' : '#a1a1aa', marginTop: '2px', fontWeight: 600 }}>
                         Plug: {v.connectorType}
                       </div>
                       <div style={{ marginTop: '6px' }}>
-                        <span className={`badge-clean ${v.hasSwappableBattery ? 'badge-green' : 'badge-dark'}`}>
+                        <span className={`badge-clean ${v.hasSwappableBattery ? 'badge-green' : 'badge-yellow'}`}>
                           {v.hasSwappableBattery ? '🔋 Swappable Battery' : '⚡ Fixed Battery'}
                         </span>
                       </div>
@@ -417,16 +420,16 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
             {/* 2. Assistance Mode Selection (STRICT USER RULE ENFORCED) */}
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <label style={{ fontSize: '0.88rem', color: '#e2e8f0', fontWeight: 600 }}>
+                <label style={{ fontSize: '0.88rem', color: isHoneybee ? '#18181b' : '#f4f4f5', fontWeight: 700 }}>
                   Compatible Assistance Services
                 </label>
                 {selectedVehicle && !selectedVehicle.hasSwappableBattery && (
-                  <span style={{ fontSize: '0.75rem', color: '#f59e0b', background: 'rgba(245, 158, 11, 0.1)', padding: '2px 8px', borderRadius: '4px' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#854d0e', background: '#fef3c7', border: '1px solid #d97706', padding: '2px 8px', borderRadius: '4px', fontWeight: 600 }}>
                     Notice: {selectedVehicle.brand} {selectedVehicle.modelName} has a fixed battery; swap option is hidden
                   </span>
                 )}
                 {!selectedVehicle && (
-                  <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#71717a' }}>
                     Register vehicle to verify options
                   </span>
                 )}
@@ -437,26 +440,27 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
                 <div
                   onClick={() => setAssistanceMode('PORTABLE_CHARGER')}
                   style={{
-                    background: assistanceMode === 'PORTABLE_CHARGER' ? '#172554' : '#0b1120',
-                    border: assistanceMode === 'PORTABLE_CHARGER' ? '2px solid #2563eb' : '1px solid #1e293b',
-                    borderRadius: '14px',
+                    background: assistanceMode === 'PORTABLE_CHARGER' ? (isHoneybee ? '#fef08a' : '#18181b') : (isHoneybee ? '#ffffff' : '#121215'),
+                    border: assistanceMode === 'PORTABLE_CHARGER' ? (isHoneybee ? '2px solid #000000' : '2px solid #facc15') : (isHoneybee ? '1.5px solid #18181b' : '1.5px solid #27272a'),
+                    borderRadius: '8px',
                     padding: '18px',
                     cursor: 'pointer',
+                    boxShadow: assistanceMode === 'PORTABLE_CHARGER' ? '3px 3px 0px #000000' : 'none',
                     transition: 'all 0.15s ease'
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                    <div style={{ background: '#1d4ed8', borderRadius: '8px', padding: '7px', color: '#ffffff' }}>
+                    <div style={{ background: '#facc15', border: '1.5px solid #000000', borderRadius: '6px', padding: '7px', color: '#000000' }}>
                       <Zap size={18} />
                     </div>
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: '0.98rem', color: '#ffffff' }}>
+                      <div style={{ fontWeight: 800, fontSize: '0.98rem', color: isHoneybee ? '#000000' : '#f4f4f5' }}>
                         Mobile Charger Delivery
                       </div>
-                      <span className="badge-clean badge-blue">Roadside Cable Boost</span>
+                      <span className="badge-clean badge-yellow">Roadside Cable Boost</span>
                     </div>
                   </div>
-                  <p style={{ fontSize: '0.8rem', color: '#94a3b8', lineHeight: '1.4' }}>
+                  <p style={{ fontSize: '0.8rem', color: isHoneybee ? '#52525b' : '#a1a1aa', lineHeight: '1.4' }}>
                     Helper brings an approved portable EV charger & heavy-duty extension cable to provide on-site emergency charging (~15-20km range).
                   </p>
                 </div>
@@ -467,7 +471,7 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
                     onClick={() => setAssistanceMode('BATTERY_SWAP')}
                     style={{
                       background: assistanceMode === 'BATTERY_SWAP' ? '#062e24' : '#0b1120',
-                      border: assistanceMode === 'BATTERY_SWAP' ? '2px solid #00d293' : '1px solid #1e293b',
+                      border: assistanceMode === 'BATTERY_SWAP' ? '2px solid #00d293' : (isHoneybee ? '1.5px solid #d4d4d8' : '1px solid #1e293b'),
                       borderRadius: '14px',
                       padding: '18px',
                       cursor: 'pointer',
@@ -508,9 +512,9 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
                     style={{
                       background: 'transparent',
                       border: 'none',
-                      color: '#38bdf8',
+                      color: isHoneybee ? '#000000' : '#facc15',
                       fontSize: '0.72rem',
-                      fontWeight: 600,
+                      fontWeight: 700,
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
@@ -523,9 +527,9 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
                 </div>
 
                 <div style={{
-                  background: '#090d16',
-                  border: '1px solid #1e293b',
-                  borderRadius: '10px',
+                  background: isHoneybee ? '#fafafa' : '#18181b',
+                  border: isHoneybee ? '1.5px solid #18181b' : '1.5px solid #27272a',
+                  borderRadius: '8px',
                   padding: '10px 14px',
                   display: 'flex',
                   alignItems: 'center',
@@ -533,12 +537,12 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
                   gap: '10px'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-                    <Navigation size={16} color="#00d293" style={{ flexShrink: 0 }} />
+                    <Navigation size={16} color="#ca8a04" style={{ flexShrink: 0 }} />
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: '0.85rem', color: '#f8fafc', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <div style={{ fontSize: '0.85rem', color: isHoneybee ? '#000000' : '#f4f4f5', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {liveLocation.lat.toFixed(5)}° N, {liveLocation.lng.toFixed(5)}° E
                       </div>
-                      <div style={{ fontSize: '0.7rem', color: '#64748b' }}>
+                      <div style={{ fontSize: '0.7rem', color: isHoneybee ? '#71717a' : '#a1a1aa' }}>
                         Updated: {locationTimestamp} {liveLocation.accuracy ? `(±${liveLocation.accuracy}m)` : ''}
                       </div>
                     </div>
@@ -550,16 +554,17 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
                     rel="noreferrer"
                     style={{
                       fontSize: '0.72rem',
-                      color: '#60a5fa',
+                      color: '#854d0e',
                       textDecoration: 'none',
-                      background: 'rgba(37, 99, 235, 0.1)',
-                      border: '1px solid rgba(37, 99, 235, 0.2)',
+                      background: '#fef08a',
+                      border: '1.5px solid #18181b',
                       padding: '4px 8px',
                       borderRadius: '6px',
                       whiteSpace: 'nowrap',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '4px'
+                      gap: '4px',
+                      fontWeight: 700
                     }}
                   >
                     <span>View Map</span>
@@ -569,16 +574,17 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
 
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                  <label style={{ fontSize: '0.82rem', color: '#94a3b8', fontWeight: 600 }}>
-                    Battery Remaining: <span style={{ color: '#ffffff', fontWeight: 700 }}>{batteryRemaining}%</span>
+                  <label style={{ fontSize: '0.82rem', color: isHoneybee ? '#18181b' : '#f4f4f5', fontWeight: 700 }}>
+                    Battery Remaining: <span style={{ color: isHoneybee ? '#000000' : '#facc15', fontWeight: 900 }}>{batteryRemaining}%</span>
                   </label>
                   <span style={{
                     fontSize: '0.72rem',
                     fontWeight: 700,
                     padding: '2px 8px',
                     borderRadius: '4px',
-                    background: batteryRemaining <= 15 ? 'rgba(244, 63, 94, 0.15)' : batteryRemaining <= 35 ? 'rgba(245, 158, 11, 0.15)' : 'rgba(16, 185, 129, 0.15)',
-                    color: batteryRemaining <= 15 ? '#f43f5e' : batteryRemaining <= 35 ? '#f59e0b' : '#10b981'
+                    background: batteryRemaining <= 15 ? '#fee2e2' : batteryRemaining <= 35 ? '#fef3c7' : '#dcfce7',
+                    color: batteryRemaining <= 15 ? '#b91c1c' : batteryRemaining <= 35 ? '#92400e' : '#15803d',
+                    border: '1px solid #18181b'
                   }}>
                     {batteryRemaining <= 15 ? 'Critical (Stranded Risk)' : batteryRemaining <= 35 ? 'Low Battery' : 'Sufficient'}
                   </span>
@@ -589,7 +595,7 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
                   max="100"
                   value={batteryRemaining}
                   onChange={(e) => setBatteryRemaining(Number(e.target.value))}
-                  style={{ width: '100%', accentColor: batteryRemaining <= 15 ? '#f43f5e' : '#2563eb', marginTop: '6px' }}
+                  style={{ width: '100%', accentColor: batteryRemaining <= 15 ? '#dc2626' : '#eab308', marginTop: '6px' }}
                 />
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: '#64748b', marginTop: '4px' }}>
                   <span>0% (Dead)</span>
@@ -642,8 +648,9 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
           
           {/* Readiness Timer Bar */}
           <div style={{
-            background: '#0f172a',
-            border: '1px solid #1e293b',
+            background: isHoneybee ? '#ffffff' : '#0f172a',
+            border: isHoneybee ? '1.5px solid #18181b' : '1px solid #1e293b',
+            boxShadow: isHoneybee ? '2px 2px 0px #000000' : 'none',
             borderRadius: '12px',
             padding: '14px 20px',
             display: 'flex',
@@ -655,24 +662,24 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <Clock size={18} color="#f59e0b" />
               <div>
-                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#f8fafc' }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: isHoneybee ? '#000000' : '#f8fafc' }}>
                   Helper Readiness Guaranteed
                 </div>
-                <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                <div style={{ fontSize: '0.75rem', color: isHoneybee ? '#52525b' : '#94a3b8' }}>
                   Provider equipment and availability held per PRD Section 6.5.
                 </div>
               </div>
             </div>
 
             <div style={{
-              background: '#1e293b',
-              border: '1px solid #334155',
+              background: isHoneybee ? '#fefce8' : '#1e293b',
+              border: isHoneybee ? '1.5px solid #18181b' : '1px solid #334155',
               padding: '6px 12px',
               borderRadius: '8px',
               fontFamily: 'monospace',
               fontWeight: 700,
               fontSize: '1rem',
-              color: '#f59e0b'
+              color: isHoneybee ? '#854d0e' : '#f59e0b'
             }}>
               ⏱️ {formatCountdown(timeLeftSeconds)} remaining
             </div>
@@ -708,15 +715,16 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
                   className="pro-card"
                   style={{
                     padding: '20px',
-                    borderColor: isSelected ? '#3b82f6' : '#1e293b',
-                    background: isSelected ? '#0f1a33' : '#0f172a',
-                    cursor: 'pointer'
+                    borderColor: isSelected ? '#000000' : '#18181b',
+                    background: isSelected ? '#fef08a' : '#ffffff',
+                    cursor: 'pointer',
+                    boxShadow: isSelected ? '3px 3px 0px #000000' : 'none'
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
                     <div>
-                      <h3 style={{ fontSize: '1.1rem', color: '#ffffff' }}>{candidate.providerName}</h3>
-                      <div style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+                      <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: isHoneybee ? '#000000' : '#f4f4f5' }}>{candidate.providerName}</h3>
+                      <div style={{ fontSize: '0.78rem', color: isHoneybee ? '#52525b' : '#a1a1aa', fontWeight: 600 }}>
                         {candidate.areaName} • ⭐ {candidate.rating} ({candidate.completedRescues} rescues)
                       </div>
                     </div>
@@ -724,19 +732,19 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
                   </div>
 
                   <div style={{
-                    background: '#090d16',
-                    border: '1px solid #1e293b',
+                    background: isSelected ? (isHoneybee ? '#ffffff' : '#1e293b') : (isHoneybee ? '#fafafa' : '#18181b'),
+                    border: isHoneybee ? '1.5px solid #18181b' : '1.5px solid #27272a',
                     borderRadius: '8px',
                     padding: '10px 12px',
                     fontSize: '0.8rem',
-                    color: '#e2e8f0',
+                    color: isHoneybee ? '#000000' : '#f4f4f5',
                     marginBottom: '14px'
                   }}>
-                    <div style={{ fontWeight: 600, color: '#60a5fa' }}>{candidate.serviceTitle}</div>
-                    <div style={{ color: '#94a3b8', marginTop: '4px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ fontWeight: 800, color: isHoneybee ? '#000000' : '#f4f4f5' }}>{candidate.serviceTitle}</div>
+                    <div style={{ color: isHoneybee ? '#52525b' : '#a1a1aa', marginTop: '4px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
                       <span>Estimated arrival: <b>~{candidate.etaMinutes} mins</b></span>
                       {candidate.distanceKm && (
-                        <span style={{ color: '#00d293', fontWeight: 600 }}>
+                        <span style={{ color: '#15803d', fontWeight: 700 }}>
                           • 📍 {candidate.distanceKm} km from your live GPS
                         </span>
                       )}
@@ -749,31 +757,32 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
                     alignItems: 'center',
                     gap: '8px',
                     fontSize: '0.78rem',
-                    color: '#94a3b8',
+                    color: '#854d0e',
                     marginBottom: '14px',
-                    background: '#131b2e',
+                    background: '#fef3c7',
+                    border: '1px solid #d97706',
                     padding: '6px 10px',
                     borderRadius: '6px'
                   }}>
-                    <Lock size={13} color="#f59e0b" />
+                    <Lock size={13} color="#92400e" />
                     <span>Contact: <b>{candidate.maskedPhone}</b> (Protected until unlock)</span>
                   </div>
 
                   {/* Pricing Breakdown */}
                   <div style={{
-                    borderTop: '1px solid #1e293b',
+                    borderTop: isHoneybee ? '1.5px solid #18181b' : '1.5px solid #27272a',
                     paddingTop: '12px',
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center'
                   }}>
                     <div>
-                      <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Helper Service Charge</div>
-                      <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#ffffff' }}>
+                      <div style={{ fontSize: '0.7rem', color: isHoneybee ? '#71717a' : '#a1a1aa', fontWeight: 600 }}>Helper Service Charge</div>
+                      <div style={{ fontSize: '1.25rem', fontWeight: 900, color: isHoneybee ? '#000000' : '#f4f4f5' }}>
                         ₹{candidate.confirmedPrice}
                       </div>
                     </div>
-                    <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                    <span style={{ fontSize: '0.75rem', color: isHoneybee ? '#52525b' : '#a1a1aa', fontWeight: 600 }}>
                       Paid on-site directly to helper
                     </span>
                   </div>
@@ -783,21 +792,21 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
           </div>
 
           {/* Payment Card with Razorpay Trigger */}
-          <div className="pro-card" style={{ padding: '24px', border: '1px solid #2563eb' }}>
+          <div className="pro-card" style={{ padding: '24px', border: isHoneybee ? '2px solid #000000' : '2px solid #facc15', boxShadow: isHoneybee ? '4px 4px 0px #000000' : 'none' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '16px' }}>
               <div>
-                <h3 style={{ fontSize: '1.15rem', color: '#ffffff', marginBottom: '4px' }}>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: isHoneybee ? '#000000' : '#f4f4f5', marginBottom: '4px' }}>
                   Unlock Sahayak Emergency Contact
                 </h3>
-                <p style={{ fontSize: '0.82rem', color: '#94a3b8' }}>
+                <p style={{ fontSize: '0.82rem', color: isHoneybee ? '#52525b' : '#a1a1aa' }}>
                   Platform Emergency Pass fee unlocks direct calling, live location routing, and WhatsApp coordination.
                 </p>
               </div>
 
               <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Emergency Pass Fee</div>
-                <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#ffffff' }}>
-                  ₹19 <span style={{ fontSize: '0.8rem', color: '#60a5fa', fontWeight: 500 }}>one-time pass</span>
+                <div style={{ fontSize: '0.72rem', color: isHoneybee ? '#71717a' : '#a1a1aa', fontWeight: 600 }}>Emergency Pass Fee</div>
+                <div style={{ fontSize: '1.8rem', fontWeight: 900, color: isHoneybee ? '#000000' : '#facc15' }}>
+                  ₹19 <span style={{ fontSize: '0.8rem', color: isHoneybee ? '#52525b' : '#a1a1aa', fontWeight: 600 }}>one-time pass</span>
                 </div>
               </div>
             </div>
@@ -850,16 +859,17 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
           <div style={{
             maxWidth: '540px',
             margin: '0 auto 20px',
-            background: '#090d16',
-            border: '1px solid #1e293b',
+            background: isHoneybee ? '#ffffff' : '#090d16',
+            border: isHoneybee ? '1.5px solid #18181b' : '1px solid #1e293b',
+            boxShadow: isHoneybee ? '3px 3px 0px #000000' : 'none',
             borderRadius: '14px',
             padding: '20px',
             textAlign: 'left'
           }}>
             {/* Live Telemetry Radar Header */}
             <div style={{
-              background: '#0f172a',
-              border: '1px solid #1e293b',
+              background: isHoneybee ? '#fefce8' : '#0f172a',
+              border: isHoneybee ? '1.5px solid #18181b' : '1px solid #1e293b',
               borderRadius: '12px',
               padding: '14px 16px',
               marginBottom: '16px'
@@ -878,66 +888,67 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
 
               {/* Numerical Metrics Bar */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', textAlign: 'center' }}>
-                <div style={{ background: '#090d16', padding: '10px', borderRadius: '8px', border: '1px solid #1e293b' }}>
-                  <div style={{ fontSize: '0.68rem', color: '#94a3b8' }}>Distance to Pin</div>
-                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#38bdf8', fontFamily: 'monospace' }}>
+                <div style={{ background: isHoneybee ? '#fafafa' : '#18181b', padding: '10px', borderRadius: '8px', border: isHoneybee ? '1.5px solid #18181b' : '1.5px solid #27272a' }}>
+                  <div style={{ fontSize: '0.68rem', color: isHoneybee ? '#71717a' : '#a1a1aa', fontWeight: 600 }}>Distance to Pin</div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 900, color: isHoneybee ? '#000000' : '#f4f4f5', fontFamily: 'monospace' }}>
                     {liveTelemetry.distanceKm} <span style={{ fontSize: '0.72rem' }}>km</span>
                   </div>
                 </div>
 
-                <div style={{ background: '#090d16', padding: '10px', borderRadius: '8px', border: '1px solid #1e293b' }}>
-                  <div style={{ fontSize: '0.68rem', color: '#94a3b8' }}>Live ETA</div>
-                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#00d293', fontFamily: 'monospace' }}>
+                <div style={{ background: isHoneybee ? '#fafafa' : '#18181b', padding: '10px', borderRadius: '8px', border: isHoneybee ? '1.5px solid #18181b' : '1.5px solid #27272a' }}>
+                  <div style={{ fontSize: '0.68rem', color: isHoneybee ? '#71717a' : '#a1a1aa', fontWeight: 600 }}>Live ETA</div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#15803d', fontFamily: 'monospace' }}>
                     {liveTelemetry.etaMinutes} <span style={{ fontSize: '0.72rem' }}>mins</span>
                   </div>
                 </div>
 
-                <div style={{ background: '#090d16', padding: '10px', borderRadius: '8px', border: '1px solid #1e293b' }}>
-                  <div style={{ fontSize: '0.68rem', color: '#94a3b8' }}>Speed</div>
-                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#fbbf24', fontFamily: 'monospace' }}>
+                <div style={{ background: isHoneybee ? '#fafafa' : '#18181b', padding: '10px', borderRadius: '8px', border: isHoneybee ? '1.5px solid #18181b' : '1.5px solid #27272a' }}>
+                  <div style={{ fontSize: '0.68rem', color: isHoneybee ? '#71717a' : '#a1a1aa', fontWeight: 600 }}>Speed</div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#ca8a04', fontFamily: 'monospace' }}>
                     {liveTelemetry.speedKmph} <span style={{ fontSize: '0.72rem' }}>km/h</span>
                   </div>
                 </div>
               </div>
 
               {/* Progress Stepper */}
-              <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.68rem', color: '#64748b' }}>
-                <span style={{ color: '#00d293', fontWeight: 600 }}>1. Confirmed</span>
+              <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.68rem', color: isHoneybee ? '#71717a' : '#a1a1aa', fontWeight: 700 }}>
+                <span style={{ color: '#15803d', fontWeight: 700 }}>1. Confirmed</span>
                 <span>→</span>
-                <span style={{ color: '#38bdf8', fontWeight: 600 }}>2. En Route</span>
+                <span style={{ color: '#ca8a04', fontWeight: 700 }}>2. En Route</span>
                 <span>→</span>
-                <span style={{ color: liveTelemetry.distanceKm <= 0.5 ? '#00d293' : '#64748b' }}>3. Approaching</span>
+                <span style={{ color: liveTelemetry.distanceKm <= 0.5 ? '#15803d' : (isHoneybee ? '#71717a' : '#a1a1aa') }}>3. Approaching</span>
                 <span>→</span>
-                <span style={{ color: liveTelemetry.status === 'ARRIVED_AT_SCENE' ? '#00d293' : '#64748b' }}>4. Charging</span>
+                <span style={{ color: liveTelemetry.status === 'ARRIVED_AT_SCENE' ? '#15803d' : (isHoneybee ? '#71717a' : '#a1a1aa') }}>4. Charging</span>
               </div>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
               <div>
-                <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Assigned Helper</div>
-                <div style={{ fontSize: '1.15rem', fontWeight: 700, color: '#ffffff' }}>
+                <div style={{ fontSize: '0.72rem', color: isHoneybee ? '#71717a' : '#a1a1aa', fontWeight: 600 }}>Assigned Helper</div>
+                <div style={{ fontSize: '1.2rem', fontWeight: 900, color: isHoneybee ? '#000000' : '#f4f4f5' }}>
                   {unlockedEntitlement.providerName}
                 </div>
               </div>
-              <span className="badge-clean badge-blue">Ready on Scene</span>
+              <span className="badge-clean badge-yellow">Ready on Scene</span>
             </div>
 
             {/* Live GPS Dispatch Destination */}
             <div style={{
-              background: '#0f172a',
-              border: '1px solid #1e293b',
-              borderRadius: '10px',
+              background: isHoneybee ? '#ffffff' : '#18181b',
+              border: isHoneybee ? '1.5px solid #18181b' : '1.5px solid #27272a',
+              borderRadius: '8px',
               padding: '10px 14px',
               marginBottom: '14px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              gap: '10px'
+              gap: '10px',
+              boxShadow: isHoneybee ? '2px 2px 0px #000000' : 'none'
             }}>
               <div>
-                <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Rider Live GPS Breakdown Point</div>
-                <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#00d293', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Navigation size={13} />
+                <div style={{ fontSize: '0.7rem', color: isHoneybee ? '#71717a' : '#a1a1aa', fontWeight: 600 }}>Rider Live GPS Breakdown Point</div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 800, color: isHoneybee ? '#000000' : '#f4f4f5', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Navigation size={13} color="#ca8a04" />
                   <span>{liveLocation.lat.toFixed(5)}° N, {liveLocation.lng.toFixed(5)}° E</span>
                 </div>
               </div>
@@ -947,12 +958,13 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
                 rel="noreferrer"
                 style={{
                   fontSize: '0.72rem',
-                  color: '#38bdf8',
+                  color: '#854d0e',
                   textDecoration: 'none',
-                  background: 'rgba(56, 189, 248, 0.1)',
-                  border: '1px solid rgba(56, 189, 248, 0.2)',
-                  padding: '4px 8px',
-                  borderRadius: '6px'
+                  background: '#fef08a',
+                  border: '1.5px solid #18181b',
+                  padding: '4px 10px',
+                  borderRadius: '6px',
+                  fontWeight: 700
                 }}
               >
                 Open Map Pin
@@ -960,15 +972,15 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
             </div>
 
             <div style={{
-              background: '#0f172a',
-              border: '1px solid #334155',
+              background: isHoneybee ? '#fefce8' : '#0f172a',
+              border: isHoneybee ? '1.5px solid #18181b' : '1px solid #334155',
               borderRadius: '10px',
               padding: '12px',
               textAlign: 'center',
               marginBottom: '16px'
             }}>
-              <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Direct Telephone</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#00d293', letterSpacing: '0.04em' }}>
+              <div style={{ fontSize: '0.72rem', color: isHoneybee ? '#71717a' : '#94a3b8' }}>Direct Telephone</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: isHoneybee ? '#000000' : '#00d293', letterSpacing: '0.04em' }}>
                 {unlockedEntitlement.revealedPhone}
               </div>
             </div>

@@ -97,7 +97,7 @@ export default function AuthModal({ isOpen, onClose, onLogin, currentUser }) {
               gap: '4px'
             }}
           >
-            <Bike size={16} color={role === 'MEMBER' ? '#38bdf8' : '#64748b'} />
+            <Bike size={16} color={role === 'MEMBER' ? '#facc15' : '#64748b'} />
             <span>EV Member</span>
           </button>
 
@@ -148,12 +148,12 @@ export default function AuthModal({ isOpen, onClose, onLogin, currentUser }) {
 
         {/* Role Information Banner */}
         <div style={{
-          background: role === 'ADMIN' ? 'rgba(245, 158, 11, 0.08)' : 'rgba(37, 99, 235, 0.08)',
-          border: role === 'ADMIN' ? '1px solid rgba(245, 158, 11, 0.25)' : '1px solid rgba(37, 99, 235, 0.25)',
+          background: role === 'ADMIN' ? 'rgba(245, 158, 11, 0.12)' : 'rgba(250, 204, 21, 0.1)',
+          border: role === 'ADMIN' ? '1px solid rgba(245, 158, 11, 0.3)' : '1.5px solid rgba(250, 204, 21, 0.35)',
           borderRadius: '10px',
           padding: '10px 14px',
           fontSize: '0.78rem',
-          color: role === 'ADMIN' ? '#fbbf24' : '#93c5fd',
+          color: role === 'ADMIN' ? '#fbbf24' : '#facc15',
           marginBottom: '18px',
           lineHeight: '1.4'
         }}>

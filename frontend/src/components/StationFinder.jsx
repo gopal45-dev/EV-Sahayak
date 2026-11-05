@@ -5,7 +5,8 @@ import {
 } from 'lucide-react';
 import InteractiveMap from './InteractiveMap';
 
-export default function StationFinder({ stations = [], onReportStation, userVehicles = [] }) {
+export default function StationFinder({ stations = [], onReportStation, userVehicles = [], theme = 'honeybee' }) {
+  const isHoneybee = theme !== 'obsidian';
   const [activeMode, setActiveMode] = useState('browse'); // 'browse' or 'route'
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedConnector, setSelectedConnector] = useState('ALL');
@@ -112,8 +113,8 @@ export default function StationFinder({ stations = [], onReportStation, userVehi
     <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '32px 24px' }}>
       {/* Top Banner with Navigation & Route Mode Toggle */}
       <div style={{
-        background: '#0f172a',
-        border: '1px solid #1e293b',
+        background: isHoneybee ? '#ffffff' : '#0f172a',
+        border: isHoneybee ? '1.5px solid #18181b' : '1px solid #1e293b',
         borderRadius: '14px',
         padding: '16px 20px',
         marginBottom: '20px',
@@ -121,17 +122,18 @@ export default function StationFinder({ stations = [], onReportStation, userVehi
         flexWrap: 'wrap',
         alignItems: 'center',
         justifyContent: 'space-between',
-        gap: '12px'
+        gap: '12px',
+        boxShadow: isHoneybee ? '3px 3px 0px #000000' : 'none'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ background: '#2563eb', borderRadius: '8px', padding: '6px', display: 'flex', color: '#ffffff' }}>
+          <div style={{ background: '#facc15', border: '1.5px solid #000000', borderRadius: '6px', padding: '6px', display: 'flex', color: '#000000' }}>
             <Zap size={18} />
           </div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#ffffff' }}>
+            <div style={{ fontWeight: 800, fontSize: '0.95rem', color: isHoneybee ? '#000000' : '#ffffff' }}>
               Free Bengaluru EV Charging Directory
             </div>
-            <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+            <div style={{ fontSize: '0.8rem', color: isHoneybee ? '#52525b' : '#94a3b8' }}>
               Verified network map with real-time port status and turn-by-turn Google Maps navigation.
             </div>
           </div>
@@ -162,18 +164,19 @@ export default function StationFinder({ stations = [], onReportStation, userVehi
       <div className="pro-card" style={{
         padding: '12px 18px',
         marginBottom: '16px',
-        background: '#090d16',
-        border: '1px solid #1e293b',
+        background: isHoneybee ? '#ffffff' : '#090d16',
+        border: isHoneybee ? '1.5px solid #18181b' : '1px solid #1e293b',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         flexWrap: 'wrap',
-        gap: '12px'
+        gap: '12px',
+        boxShadow: isHoneybee ? '2px 2px 0px #000000' : 'none'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>BESCOM Bengaluru Tariff:</span>
-            <span className={`badge-clean ${bescomTariff.zone === 'OFF_PEAK' ? 'badge-green' : (bescomTariff.zone === 'PEAK' ? 'badge-amber' : 'badge-blue')}`}>
+            <span style={{ fontSize: '0.78rem', color: '#71717a', fontWeight: 600 }}>BESCOM Bengaluru Tariff:</span>
+            <span className={`badge-clean ${bescomTariff.zone === 'OFF_PEAK' ? 'badge-green' : (bescomTariff.zone === 'PEAK' ? 'badge-amber' : 'badge-yellow')}`}>
               {bescomTariff.zone} • {bescomTariff.ratePerKwh}/kWh
             </span>
           </div>
@@ -191,20 +194,20 @@ export default function StationFinder({ stations = [], onReportStation, userVehi
 
       {/* Route Corridor Configuration Card (P2: Route-based charging) */}
       {activeMode === 'route' && (
-        <div className="pro-card" style={{ padding: '16px 20px', marginBottom: '20px', background: 'rgba(37, 99, 235, 0.08)', border: '1px solid rgba(37, 99, 235, 0.25)' }}>
+        <div className="pro-card" style={{ padding: '16px 20px', marginBottom: '20px', background: isHoneybee ? '#fefce8' : '#18181b', border: isHoneybee ? '1.5px solid #18181b' : '1.5px solid #27272a', boxShadow: isHoneybee ? '2px 2px 0px #000000' : 'none' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-            <Compass size={18} color="#38bdf8" />
-            <span style={{ fontWeight: 700, fontSize: '0.92rem', color: '#ffffff' }}>
+            <Compass size={18} color="#ca8a04" />
+            <span style={{ fontWeight: 800, fontSize: '0.92rem', color: isHoneybee ? '#000000' : '#f4f4f5' }}>
               Highway & Commute Route Corridor Planner
             </span>
           </div>
-          <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: '14px' }}>
+          <p style={{ fontSize: '0.8rem', color: isHoneybee ? '#52525b' : '#a1a1aa', marginBottom: '14px' }}>
             Find reliable high-speed charging pitstops along your intended journey without taking long detours.
           </p>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', alignItems: 'flex-end' }}>
             <div>
-              <label style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Starting Point</label>
+              <label style={{ fontSize: '0.75rem', color: '#71717a', display: 'block', marginBottom: '4px', fontWeight: 600 }}>Starting Point</label>
               <select value={origin} onChange={(e) => setOrigin(e.target.value)} className="input-pro">
                 <option value="Indiranagar">Indiranagar</option>
                 <option value="Whitefield">Whitefield</option>
@@ -214,7 +217,7 @@ export default function StationFinder({ stations = [], onReportStation, userVehi
             </div>
 
             <div>
-              <label style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Destination</label>
+              <label style={{ fontSize: '0.75rem', color: '#71717a', display: 'block', marginBottom: '4px', fontWeight: 600 }}>Destination</label>
               <select value={destination} onChange={(e) => setDestination(e.target.value)} className="input-pro">
                 <option value="Electronic City">Electronic City</option>
                 <option value="MG Road">MG Road</option>
@@ -224,7 +227,7 @@ export default function StationFinder({ stations = [], onReportStation, userVehi
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', paddingBottom: '8px' }}>
-              <span className="badge-clean badge-blue">Corridor: {origin} → {destination}</span>
+              <span className="badge-clean badge-yellow">Corridor: {origin} → {destination}</span>
             </div>
           </div>
         </div>
@@ -324,17 +327,18 @@ export default function StationFinder({ stations = [], onReportStation, userVehi
                   className="pro-card pro-card-hover"
                   style={{
                     padding: '16px',
-                    borderColor: isSelected ? '#3b82f6' : '#1e293b',
-                    background: isSelected ? '#0f1a33' : '#0f172a',
-                    cursor: 'pointer'
+                    borderColor: isSelected ? (isHoneybee ? '#000000' : '#facc15') : (isHoneybee ? '#18181b' : '#27272a'),
+                    background: isSelected ? (isHoneybee ? '#fef08a' : '#18181b') : (isHoneybee ? '#ffffff' : '#121215'),
+                    cursor: 'pointer',
+                    boxShadow: isSelected ? '3px 3px 0px #000000' : 'none'
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                     <div>
-                      <h3 style={{ fontSize: '1rem', color: '#ffffff', marginBottom: '2px' }}>
+                      <h3 style={{ fontSize: '1rem', fontWeight: 800, color: isHoneybee ? '#000000' : '#f4f4f5', marginBottom: '2px' }}>
                         {station.name}
                       </h3>
-                      <div style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+                      <div style={{ fontSize: '0.78rem', color: isHoneybee ? '#52525b' : '#a1a1aa', fontWeight: 600 }}>
                         {station.operator} • {station.city}
                       </div>
                     </div>
@@ -343,14 +347,14 @@ export default function StationFinder({ stations = [], onReportStation, userVehi
                         <Star size={11} fill="#fbbf24" color="#fbbf24" />
                         <span>4.8</span>
                       </span>
-                      <span className={`badge-clean ${hasSwap ? 'badge-blue' : 'badge-green'}`}>
+                      <span className={`badge-clean ${hasSwap ? 'badge-yellow' : 'badge-green'}`}>
                         {hasSwap ? 'Battery Swap' : station.verificationStatus}
                       </span>
                     </div>
                   </div>
 
-                  <div style={{ fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <MapPin size={13} color="#64748b" />
+                  <div style={{ fontSize: '0.8rem', color: isHoneybee ? '#27272a' : '#d4d4d8', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <MapPin size={13} color="#71717a" />
                     <span>{station.address}</span>
                   </div>
 
@@ -361,12 +365,12 @@ export default function StationFinder({ stations = [], onReportStation, userVehi
                         key={i}
                         style={{
                           fontSize: '0.72rem',
-                          background: '#090d16',
-                          border: '1px solid #1e293b',
+                          background: isHoneybee ? '#fafafa' : '#18181b',
+                          border: isHoneybee ? '1.5px solid #18181b' : '1.5px solid #27272a',
                           padding: '3px 8px',
                           borderRadius: '6px',
-                          color: '#38bdf8',
-                          fontWeight: 600
+                          color: isHoneybee ? '#000000' : '#f4f4f5',
+                          fontWeight: 700
                         }}
                       >
                         ⚡ {c.connectorType.replace(/_/g, ' ')} ({c.powerKw} kW) • {c.portsAvailable}/{c.portsTotal} avail
@@ -375,7 +379,7 @@ export default function StationFinder({ stations = [], onReportStation, userVehi
                   </div>
 
                   {/* Actions: Navigation & Report */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '10px', borderTop: '1px solid #1e293b' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '10px', borderTop: isHoneybee ? '1.5px solid #e4e4e7' : '1px solid #1e293b' }}>
                     <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
                       Verified: {new Date(station.lastVerifiedAt).toLocaleDateString()}
                     </span>

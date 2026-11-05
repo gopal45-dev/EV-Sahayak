@@ -49,23 +49,24 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onOpenAut
           style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
         >
           <div style={{
-            background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+            background: '#facc15',
+            border: '1.5px solid #18181b',
             width: '36px',
             height: '36px',
             borderRadius: '10px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 2px 8px rgba(37, 99, 235, 0.4)'
+            boxShadow: '0 2px 8px rgba(250, 204, 21, 0.4)'
           }}>
-            <Zap size={20} color="#ffffff" />
+            <Zap size={20} color="#18181b" />
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span style={{ fontSize: '1.2rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#ffffff' }}>
                 EV Sahayak
               </span>
-              <span style={{ fontSize: '0.68rem', color: '#60a5fa', background: 'rgba(37, 99, 235, 0.12)', border: '1px solid rgba(37, 99, 235, 0.25)', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>
+              <span style={{ fontSize: '0.68rem', color: '#854d0e', background: '#fef08a', border: '1.5px solid #18181b', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>
                 BENGALURU
               </span>
             </div>
@@ -88,7 +89,7 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onOpenAut
                 onClick={() => handleSelect(item)}
                 style={{
                   background: isActive ? '#1e293b' : 'transparent',
-                  color: isActive ? '#ffffff' : (item.highlight ? '#38bdf8' : '#94a3b8'),
+                  color: isActive ? '#ffffff' : (item.highlight ? '#facc15' : '#94a3b8'),
                   border: isActive ? '1px solid #334155' : '1px solid transparent',
                   padding: '7px 13px',
                   borderRadius: '8px',
@@ -101,7 +102,7 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onOpenAut
                   transition: 'all 0.15s ease'
                 }}
               >
-                <Icon size={15} color={isActive ? (item.highlight ? '#38bdf8' : '#60a5fa') : undefined} />
+                <Icon size={15} color={isActive ? (item.highlight ? '#facc15' : '#ca8a04') : undefined} />
                 <span>{item.label}</span>
                 {isLockedAdmin && <Lock size={12} color="#64748b" />}
               </button>
@@ -130,8 +131,8 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onOpenAut
                   width: '26px',
                   height: '26px',
                   borderRadius: '50%',
-                  background: currentUser.role === 'ADMIN' ? '#f59e0b' : currentUser.role === 'PROVIDER' ? '#00d293' : '#2563eb',
-                  color: '#ffffff',
+                  background: currentUser.role === 'ADMIN' ? '#f59e0b' : currentUser.role === 'PROVIDER' ? '#00d293' : '#facc15',
+                  color: currentUser.role === 'MEMBER' ? '#18181b' : '#ffffff',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -144,7 +145,7 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onOpenAut
                   <div style={{ fontSize: '0.78rem', fontWeight: 600, color: '#f8fafc' }}>
                     {currentUser.name.split(' ')[0]}
                   </div>
-                  <span className={`badge-clean ${currentUser.role === 'ADMIN' ? 'badge-amber' : currentUser.role === 'PROVIDER' ? 'badge-green' : 'badge-blue'}`} style={{ fontSize: '0.62rem', padding: '1px 5px' }}>
+                  <span className={`badge-clean ${currentUser.role === 'ADMIN' ? 'badge-amber' : currentUser.role === 'PROVIDER' ? 'badge-green' : 'badge-yellow'}`} style={{ fontSize: '0.62rem', padding: '1px 5px' }}>
                     {currentUser.role}
                   </span>
                 </div>
@@ -221,7 +222,7 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, onOpenAut
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <Icon size={18} color={item.highlight ? '#38bdf8' : '#94a3b8'} />
+                  <Icon size={18} color={item.highlight ? '#facc15' : '#94a3b8'} />
                   <span>{item.label}</span>
                 </div>
                 {isLockedAdmin && <Lock size={14} color="#64748b" />}

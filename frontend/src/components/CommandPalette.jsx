@@ -101,7 +101,7 @@ export default function CommandPalette({
     {
       id: 'theme-toggle',
       category: 'Appearance',
-      title: theme === 'royal' ? 'Switch to Obsidian Dark Theme' : 'Switch to Royal Theme (White, Red & Royal Blue)',
+      title: theme === 'royal' ? 'Switch to Obsidian Dark Theme' : 'Switch to Honeybee Theme (Yellow, White & Black)',
       description: 'Instant high-contrast theme toggle',
       icon: theme === 'royal' ? Moon : Sun,
       run: () => { onToggleTheme(); onClose(); }
@@ -156,7 +156,8 @@ export default function CommandPalette({
 
   if (!isOpen) return null;
 
-  const isRoyal = theme === 'royal';
+  const isHoneybee = theme !== 'obsidian';
+  const isRoyal = isHoneybee;
 
   return (
     <div 
@@ -186,9 +187,11 @@ export default function CommandPalette({
           gap: '12px',
           padding: '16px 20px',
           borderBottom: isRoyal ? '1px solid #e2e8f0' : '1px solid #1e293b',
-          background: isRoyal ? '#f8fafc' : '#090d16'
+          background: '#fafafa',
+          border: '1.5px solid #18181b',
+          borderRadius: '8px'
         }}>
-          <Search size={20} color={isRoyal ? '#1d4ed8' : '#38bdf8'} />
+          <Search size={20} color="#000000" />
           <input
             ref={inputRef}
             type="text"
@@ -245,11 +248,12 @@ export default function CommandPalette({
                     borderRadius: '10px',
                     cursor: 'pointer',
                     background: isSelected 
-                      ? (isRoyal ? 'rgba(29, 78, 216, 0.08)' : '#1e293b') 
+                      ? '#fef08a' 
                       : 'transparent',
                     border: isSelected 
-                      ? (isRoyal ? '1px solid rgba(29, 78, 216, 0.25)' : '1px solid #334155')
-                      : '1px solid transparent',
+                      ? '1.5px solid #000000' 
+                      : '1.5px solid transparent',
+                    boxShadow: isSelected ? '2px 2px 0px #000000' : 'none',
                     transition: 'all 0.12s ease',
                     marginBottom: '4px'
                   }}
@@ -257,11 +261,12 @@ export default function CommandPalette({
                   <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: 0 }}>
                     <div style={{
                       background: action.highlight 
-                        ? (isRoyal ? 'rgba(220, 38, 38, 0.12)' : 'rgba(244, 63, 94, 0.15)')
-                        : (isRoyal ? 'rgba(29, 78, 216, 0.1)' : 'rgba(59, 130, 246, 0.15)'),
+                        ? '#fee2e2'
+                        : '#fefce8',
                       color: action.highlight 
-                        ? (isRoyal ? '#dc2626' : '#f43f5e') 
-                        : (isRoyal ? '#1d4ed8' : '#60a5fa'),
+                        ? '#dc2626' 
+                        : '#854d0e',
+                      border: '1px solid #18181b',
                       borderRadius: '8px',
                       padding: '8px',
                       display: 'flex',
@@ -303,7 +308,8 @@ export default function CommandPalette({
 
                   <div style={{
                     fontSize: '0.75rem',
-                    color: isRoyal ? '#1d4ed8' : '#38bdf8',
+                    color: isRoyal ? '#000000' : '#facc15',
+                    fontWeight: 700,
                     display: 'flex',
                     alignItems: 'center',
                     gap: '4px',

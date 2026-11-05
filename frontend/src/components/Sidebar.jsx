@@ -10,14 +10,15 @@ export default function Sidebar({
   activeTab, 
   setActiveTab, 
   currentUser, 
-  theme = 'royal',
+  theme = 'honeybee',
   onOpenSearch,
   language = 'en'
 }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const isRoyal = theme === 'royal';
+  const isHoneybee = theme !== 'obsidian';
+  const isRoyal = isHoneybee;
   const t = translations[language] || translations.en;
 
   // Navigation items: Account page is accessible ONLY via top-right account avatar
@@ -43,8 +44,8 @@ export default function Sidebar({
         left: 0,
         right: 0,
         height: '60px',
-        background: isRoyal ? '#ffffff' : '#0b0f19',
-        borderBottom: isRoyal ? '1px solid #e2e8f0' : '1px solid #1e293b',
+        background: isHoneybee ? '#ffffff' : '#0b0f19',
+        borderBottom: isHoneybee ? '1.5px solid #18181b' : '1px solid #1e293b',
         zIndex: 90,
         padding: '0 16px',
         alignItems: 'center',
@@ -52,18 +53,20 @@ export default function Sidebar({
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{
-            background: isRoyal ? '#1d4ed8' : '#2563eb',
-            width: '32px',
-            height: '32px',
-            borderRadius: '8px',
+            background: '#facc15',
+            border: '1.5px solid #000000',
+            width: '34px',
+            height: '34px',
+            borderRadius: '6px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#fff'
+            color: '#000000',
+            boxShadow: '2px 2px 0px #000000'
           }}>
             <Zap size={18} />
           </div>
-          <span style={{ fontWeight: 800, fontSize: '1.1rem', color: isRoyal ? '#0f172a' : '#fff' }}>EV Sahayak</span>
+          <span style={{ fontWeight: 900, fontSize: '1.1rem', color: isHoneybee ? '#000000' : '#fff' }}>EV Sahayak</span>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -71,11 +74,11 @@ export default function Sidebar({
             <button
               onClick={onOpenSearch}
               style={{
-                background: isRoyal ? '#f1f5f9' : '#1e293b',
-                border: isRoyal ? '1px solid #cbd5e1' : '1px solid #334155',
-                color: isRoyal ? '#1d4ed8' : '#38bdf8',
+                background: isHoneybee ? '#ffffff' : '#1e293b',
+                border: isHoneybee ? '1.5px solid #18181b' : '1px solid #334155',
+                color: isHoneybee ? '#000000' : '#f4f4f5',
                 padding: '7px',
-                borderRadius: '8px',
+                borderRadius: '6px',
                 cursor: 'pointer'
               }}
               title="Quick Search"
@@ -87,11 +90,11 @@ export default function Sidebar({
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
             style={{
-              background: isRoyal ? '#f1f5f9' : '#1e293b',
-              border: isRoyal ? '1px solid #cbd5e1' : '1px solid #334155',
-              color: isRoyal ? '#0f172a' : '#fff',
+              background: isHoneybee ? '#ffffff' : '#1e293b',
+              border: isHoneybee ? '1.5px solid #18181b' : '1px solid #334155',
+              color: isHoneybee ? '#000000' : '#fff',
               padding: '7px',
-              borderRadius: '8px',
+              borderRadius: '6px',
               cursor: 'pointer'
             }}
           >
@@ -104,8 +107,8 @@ export default function Sidebar({
       <aside className={`app-sidebar ${mobileOpen ? 'mobile-show' : ''}`} style={{
         width: isCollapsed ? '76px' : '260px',
         minHeight: '100vh',
-        background: isRoyal ? '#ffffff' : '#0b0f19',
-        borderRight: isRoyal ? '1px solid #e2e8f0' : '1px solid #1e293b',
+        background: isHoneybee ? '#ffffff' : '#0b0f19',
+        borderRight: isHoneybee ? '1.5px solid #18181b' : '1px solid #1e293b',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
@@ -122,29 +125,30 @@ export default function Sidebar({
             display: 'flex',
             alignItems: 'center',
             justifyContent: isCollapsed ? 'center' : 'space-between',
-            borderBottom: isRoyal ? '1px solid #e2e8f0' : '1px solid #1e293b'
+            borderBottom: isHoneybee ? '1.5px solid #18181b' : '1px solid #1e293b'
           }}>
             {!isCollapsed ? (
               <>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <div style={{
-                    background: isRoyal ? '#1d4ed8' : '#2563eb',
+                    background: '#facc15',
+                    border: '1.5px solid #000000',
                     width: '36px',
                     height: '36px',
-                    borderRadius: '10px',
+                    borderRadius: '8px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: '#ffffff',
-                    boxShadow: isRoyal ? '0 4px 12px rgba(29, 78, 216, 0.25)' : '0 4px 12px rgba(37, 99, 235, 0.3)'
+                    color: '#000000',
+                    boxShadow: '2px 2px 0px #000000'
                   }}>
                     <Zap size={20} />
                   </div>
                   <div>
-                    <div style={{ fontSize: '1.05rem', fontWeight: 800, color: isRoyal ? '#0f172a' : '#ffffff', letterSpacing: '-0.02em' }}>
+                    <div style={{ fontSize: '1.05rem', fontWeight: 900, color: isHoneybee ? '#000000' : '#ffffff', letterSpacing: '-0.02em' }}>
                       EV Sahayak
                     </div>
-                    <div style={{ fontSize: '0.7rem', color: isRoyal ? '#dc2626' : '#94a3b8', fontWeight: 600 }}>
+                    <div style={{ fontSize: '0.7rem', color: isHoneybee ? '#ca8a04' : '#94a3b8', fontWeight: 700 }}>
                       {t.bengaluru_pilot}
                     </div>
                   </div>
@@ -154,16 +158,15 @@ export default function Sidebar({
                   onClick={() => setIsCollapsed(true)}
                   className="desktop-toggle-btn"
                   style={{
-                    background: isRoyal ? '#f1f5f9' : '#1e293b',
-                    border: isRoyal ? '1px solid #cbd5e1' : '1px solid #334155',
-                    color: isRoyal ? '#475569' : '#94a3b8',
-                    borderRadius: '8px',
+                    background: isHoneybee ? '#f4f4f5' : '#1e293b',
+                    border: isHoneybee ? '1.5px solid #18181b' : '1px solid #334155',
+                    color: isHoneybee ? '#18181b' : '#94a3b8',
+                    borderRadius: '6px',
                     padding: '5px',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    transition: 'all 0.15s ease'
+                    justifyContent: 'center'
                   }}
                   title={t.collapse}
                 >
@@ -174,18 +177,17 @@ export default function Sidebar({
               <button
                 onClick={() => setIsCollapsed(false)}
                 style={{
-                  background: isRoyal ? '#1d4ed8' : '#2563eb',
+                  background: '#facc15',
+                  border: '1.5px solid #000000',
                   width: '42px',
                   height: '42px',
-                  borderRadius: '12px',
+                  borderRadius: '8px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#ffffff',
-                  border: 'none',
+                  color: '#000000',
                   cursor: 'pointer',
-                  boxShadow: isRoyal ? '0 4px 14px rgba(29, 78, 216, 0.35)' : '0 4px 14px rgba(37, 99, 235, 0.4)',
-                  transition: 'transform 0.15s ease'
+                  boxShadow: '2px 2px 0px #000000'
                 }}
                 title={t.expand}
               >
@@ -204,17 +206,16 @@ export default function Sidebar({
               <button
                 onClick={onOpenSearch}
                 style={{
-                  width: '46px',
-                  height: '46px',
-                  background: isRoyal ? '#f8fafc' : '#090d16',
-                  border: isRoyal ? '1px solid #cbd5e1' : '1px solid #1e293b',
-                  borderRadius: '12px',
+                  width: '44px',
+                  height: '44px',
+                  background: isHoneybee ? '#ffffff' : '#090d16',
+                  border: isHoneybee ? '1.5px solid #18181b' : '1px solid #1e293b',
+                  borderRadius: '8px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: isRoyal ? '#1d4ed8' : '#60a5fa',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease'
+                  color: isHoneybee ? '#000000' : '#facc15',
+                  cursor: 'pointer'
                 }}
                 title={t.quick_search}
               >
@@ -225,31 +226,32 @@ export default function Sidebar({
                 onClick={onOpenSearch}
                 style={{
                   width: '100%',
-                  background: isRoyal ? '#f8fafc' : '#090d16',
-                  border: isRoyal ? '1px solid #cbd5e1' : '1px solid #1e293b',
-                  borderRadius: '10px',
+                  background: isHoneybee ? '#fafafa' : '#090d16',
+                  border: isHoneybee ? '1.5px solid #18181b' : '1px solid #1e293b',
+                  borderRadius: '8px',
                   padding: '8px 12px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  color: isRoyal ? '#64748b' : '#94a3b8',
+                  color: isHoneybee ? '#71717a' : '#94a3b8',
                   fontSize: '0.8rem',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease'
+                  fontWeight: 600,
+                  cursor: 'pointer'
                 }}
                 title={t.quick_search}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Search size={15} color={isRoyal ? '#1d4ed8' : '#60a5fa'} />
+                  <Search size={15} color={isHoneybee ? '#000000' : '#facc15'} />
                   <span>{t.quick_search}</span>
                 </div>
                 <kbd style={{
-                  background: isRoyal ? '#e2e8f0' : '#1e293b',
+                  background: isHoneybee ? '#fef08a' : '#1e293b',
+                  border: isHoneybee ? '1px solid #000000' : 'none',
                   fontSize: '0.68rem',
                   padding: '2px 5px',
                   borderRadius: '4px',
-                  color: isRoyal ? '#475569' : '#cbd5e1',
-                  fontWeight: 600
+                  color: isHoneybee ? '#000000' : '#cbd5e1',
+                  fontWeight: 700
                 }}>
                   Ctrl+K
                 </kbd>
@@ -262,7 +264,7 @@ export default function Sidebar({
             padding: isCollapsed ? '8px 0' : '8px 12px',
             display: 'flex',
             flexDirection: 'column',
-            gap: isCollapsed ? '8px' : '4px',
+            gap: isCollapsed ? '8px' : '6px',
             alignItems: isCollapsed ? 'center' : 'stretch'
           }}>
             {navItems.map(item => {
@@ -275,25 +277,22 @@ export default function Sidebar({
                     key={item.id}
                     onClick={() => handleNavClick(item.id)}
                     style={{
-                      width: '46px',
-                      height: '46px',
-                      borderRadius: '12px',
+                      width: '44px',
+                      height: '44px',
+                      borderRadius: '8px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       background: isActive 
-                        ? (isRoyal ? '#1d4ed8' : '#2563eb') 
-                        : (isRoyal ? 'transparent' : 'transparent'),
+                        ? '#facc15' 
+                        : (isHoneybee ? '#ffffff' : 'transparent'),
                       color: isActive 
-                        ? '#ffffff' 
-                        : (isRoyal ? (item.highlight ? '#dc2626' : '#475569') : (item.highlight ? '#f87171' : '#94a3b8')),
-                      border: 'none',
+                        ? '#000000' 
+                        : (isHoneybee ? (item.highlight ? '#dc2626' : '#18181b') : (item.highlight ? '#f87171' : '#94a3b8')),
+                      border: isHoneybee ? (isActive ? '1.5px solid #000000' : '1.5px solid transparent') : 'none',
                       cursor: 'pointer',
                       position: 'relative',
-                      boxShadow: isActive 
-                        ? (isRoyal ? '0 4px 14px rgba(29, 78, 216, 0.4)' : '0 4px 14px rgba(37, 99, 235, 0.45)') 
-                        : 'none',
-                      transition: 'all 0.15s ease'
+                      boxShadow: isActive && isHoneybee ? '2px 2px 0px #000000' : 'none'
                     }}
                     title={item.label}
                   >
@@ -306,8 +305,8 @@ export default function Sidebar({
                         width: '7px',
                         height: '7px',
                         borderRadius: '50%',
-                        background: isRoyal ? '#dc2626' : '#f43f5e',
-                        boxShadow: '0 0 6px #dc2626'
+                        background: '#dc2626',
+                        border: '1px solid #000000'
                       }} />
                     )}
                   </button>
@@ -322,19 +321,21 @@ export default function Sidebar({
                     display: 'flex',
                     alignItems: 'center',
                     gap: '12px',
-                    padding: '10px 14px',
-                    borderRadius: '10px',
+                    padding: '11px 16px',
+                    borderRadius: '8px',
                     background: isActive 
-                      ? (isRoyal ? '#1d4ed8' : '#2563eb') 
-                      : 'transparent',
+                      ? '#facc15' 
+                      : (isHoneybee ? '#ffffff' : 'transparent'),
                     color: isActive 
-                      ? '#ffffff' 
-                      : (isRoyal ? (item.highlight ? '#dc2626' : '#475569') : (item.highlight ? '#f87171' : '#94a3b8')),
-                    fontWeight: isActive ? 700 : (item.highlight ? 600 : 500),
-                    fontSize: '0.88rem',
-                    border: 'none',
+                      ? '#000000' 
+                      : (isHoneybee ? (item.highlight ? '#dc2626' : '#18181b') : (item.highlight ? '#f87171' : '#94a3b8')),
+                    fontWeight: isActive ? 800 : (item.highlight ? 700 : 600),
+                    fontSize: '0.9rem',
+                    border: isHoneybee 
+                      ? (isActive ? '1.5px solid #000000' : '1.5px solid transparent') 
+                      : 'none',
+                    boxShadow: isActive && isHoneybee ? '2px 2px 0px #000000' : 'none',
                     cursor: 'pointer',
-                    transition: 'all 0.15s ease',
                     position: 'relative'
                   }}
                 >
@@ -346,10 +347,11 @@ export default function Sidebar({
                       right: '12px',
                       top: '50%',
                       transform: 'translateY(-50%)',
-                      width: '6px',
-                      height: '6px',
+                      width: '8px',
+                      height: '8px',
                       borderRadius: '50%',
-                      background: isRoyal ? '#dc2626' : '#f43f5e'
+                      background: '#dc2626',
+                      border: '1px solid #000000'
                     }} />
                   )}
                 </button>
@@ -361,7 +363,7 @@ export default function Sidebar({
         {/* Bottom Expand / Collapse Toggle Bar */}
         <div style={{
           padding: isCollapsed ? '16px 0' : '16px 20px',
-          borderTop: isRoyal ? '1px solid #e2e8f0' : '1px solid #1e293b',
+          borderTop: isHoneybee ? '1.5px solid #18181b' : '1px solid #1e293b',
           display: 'flex',
           justifyContent: isCollapsed ? 'center' : 'flex-end'
         }}>
@@ -371,15 +373,14 @@ export default function Sidebar({
               style={{
                 width: '42px',
                 height: '36px',
-                background: isRoyal ? '#f1f5f9' : '#1e293b',
-                border: isRoyal ? '1px solid #cbd5e1' : '1px solid #334155',
-                color: isRoyal ? '#1d4ed8' : '#38bdf8',
-                borderRadius: '10px',
+                background: isHoneybee ? '#f4f4f5' : '#1e293b',
+                border: isHoneybee ? '1.5px solid #18181b' : '1px solid #334155',
+                color: isHoneybee ? '#000000' : '#facc15',
+                borderRadius: '6px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease'
+                cursor: 'pointer'
               }}
               title={t.expand}
             >
@@ -391,7 +392,7 @@ export default function Sidebar({
               style={{
                 background: 'transparent',
                 border: 'none',
-                color: isRoyal ? '#64748b' : '#94a3b8',
+                color: isHoneybee ? '#52525b' : '#94a3b8',
                 fontSize: '0.78rem',
                 cursor: 'pointer',
                 display: 'flex',
@@ -399,7 +400,7 @@ export default function Sidebar({
                 gap: '6px',
                 padding: '4px 8px',
                 borderRadius: '6px',
-                fontWeight: 600
+                fontWeight: 700
               }}
             >
               <ChevronLeft size={15} />

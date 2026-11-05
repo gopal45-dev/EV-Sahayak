@@ -5,7 +5,8 @@ import {
   CreditCard, Sparkles, Navigation, Clock, Search, ArrowRight, UserCheck, Wrench, Eye
 } from 'lucide-react';
 
-export default function AdminWorkspace({ adminUser, onLogout, stations = [], helpers = [], onSwitchToRider }) {
+export default function AdminWorkspace({ adminUser, onLogout, stations = [], helpers = [], onSwitchToRider, theme = 'honeybee' }) {
+  const isHoneybee = theme !== 'obsidian';
   const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'missions', 'subscriptions', 'stations', 'providers', 'complaints'
   
   // Local state for moderating stations & helpers
@@ -194,11 +195,12 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
   });
 
   return (
-    <div style={{ minHeight: '100vh', background: '#090d16', color: '#f8fafc', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', background: isHoneybee ? '#fafafa' : '#090d16', color: isHoneybee ? '#09090b' : '#f8fafc', display: 'flex', flexDirection: 'column' }}>
       {/* Admin Top Command Bar */}
       <header style={{
-        background: '#0f172a',
-        borderBottom: '1px solid #1e293b',
+        background: isHoneybee ? '#ffffff' : '#0f172a',
+        borderBottom: isHoneybee ? '1.5px solid #18181b' : '1px solid #1e293b',
+        boxShadow: isHoneybee ? '0 2px 0px rgba(0,0,0,0.06)' : 'none',
         padding: '16px 28px',
         display: 'flex',
         alignItems: 'center',
@@ -224,10 +226,10 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
             <ShieldCheck size={22} />
           </div>
           <div>
-            <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.02em' }}>
+            <div style={{ fontSize: '1.2rem', fontWeight: 800, color: isHoneybee ? '#000000' : '#ffffff', letterSpacing: '-0.02em' }}>
               EV Sahayak Admin Command Center
             </div>
-            <div style={{ fontSize: '0.75rem', color: '#f59e0b', fontWeight: 600 }}>
+            <div style={{ fontSize: '0.75rem', color: isHoneybee ? '#854d0e' : '#f59e0b', fontWeight: 600 }}>
               Superadmin: {adminUser?.email || 'guptagopaldilipd@gmail.com'}
             </div>
           </div>
@@ -270,7 +272,7 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
       {/* Main Admin Console */}
       <main style={{ maxWidth: '1240px', margin: '0 auto', width: '100%', padding: '28px 24px', flex: 1 }}>
         {/* Navigation Tabs */}
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', borderBottom: '1px solid #1e293b', paddingBottom: '12px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', borderBottom: isHoneybee ? '1.5px solid #e4e4e7' : '1px solid #1e293b', paddingBottom: '12px', flexWrap: 'wrap' }}>
           <button
             onClick={() => setActiveTab('overview')}
             className={activeTab === 'overview' ? 'btn-primary' : 'btn-secondary'}
@@ -347,9 +349,9 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
               <div className="pro-card" style={{ padding: '20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8', fontSize: '0.78rem', marginBottom: '6px' }}>
                   <span>Pro Subscriptions MRR</span>
-                  <CreditCard size={18} color="#38bdf8" />
+                  <CreditCard size={18} color="#facc15" />
                 </div>
-                <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#38bdf8', fontFamily: 'var(--font-mono)' }}>
+                <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#facc15', fontFamily: 'var(--font-mono)' }}>
                   ₹{mrrInr.toLocaleString()}<span style={{ fontSize: '0.8rem', fontWeight: 400 }}>/mo</span>
                 </div>
                 <div style={{ fontSize: '0.72rem', color: '#00d293', marginTop: '4px' }}>
@@ -389,20 +391,20 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
               {/* Recent Subscription Activity */}
               <div className="pro-card" style={{ padding: '22px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                  <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#ffffff' }}>Recent Pro Subscribers</h3>
+                  <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: isHoneybee ? '#000000' : '#ffffff' }}>Recent Pro Subscribers</h3>
                   <button onClick={() => setActiveTab('subscriptions')} className="btn-secondary" style={{ padding: '4px 10px', fontSize: '0.72rem' }}>
                     View All
                   </button>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {subscriptions.slice(0, 3).map(sub => (
-                    <div key={sub.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#090d16', padding: '10px 14px', borderRadius: '8px', border: '1px solid #1e293b' }}>
+                    <div key={sub.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: isHoneybee ? '#fefce8' : '#090d16', padding: '10px 14px', borderRadius: '8px', border: isHoneybee ? '1.5px solid #18181b' : '1px solid #1e293b' }}>
                       <div>
-                        <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#ffffff' }}>{sub.subscriberName}</div>
-                        <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{sub.phone} • {sub.planName}</div>
+                        <div style={{ fontSize: '0.84rem', fontWeight: 700, color: isHoneybee ? '#000000' : '#ffffff' }}>{sub.subscriberName}</div>
+                        <div style={{ fontSize: '0.72rem', color: isHoneybee ? '#52525b' : '#94a3b8' }}>{sub.phone} • {sub.planName}</div>
                       </div>
                       <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#00d293', fontFamily: 'var(--font-mono)' }}>₹{sub.amount}</div>
+                        <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#15803d', fontFamily: 'var(--font-mono)' }}>₹{sub.amount}</div>
                         <span className={`badge-clean ${sub.status === 'ACTIVE' ? 'badge-green' : 'badge-amber'}`} style={{ fontSize: '0.65rem' }}>
                           {sub.status}
                         </span>
@@ -415,22 +417,22 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
               {/* Live Rescue Mission Triage */}
               <div className="pro-card" style={{ padding: '22px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                  <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#ffffff' }}>Ongoing Emergency Rescues</h3>
+                  <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: isHoneybee ? '#000000' : '#ffffff' }}>Ongoing Emergency Rescues</h3>
                   <button onClick={() => setActiveTab('missions')} className="btn-secondary" style={{ padding: '4px 10px', fontSize: '0.72rem' }}>
                     Mission Control
                   </button>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {liveMissions.map(m => (
-                    <div key={m.id} style={{ background: '#090d16', padding: '12px 14px', borderRadius: '8px', border: '1px solid #1e293b' }}>
+                    <div key={m.id} style={{ background: isHoneybee ? '#fefce8' : '#090d16', padding: '12px 14px', borderRadius: '8px', border: isHoneybee ? '1.5px solid #18181b' : '1px solid #1e293b' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                        <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#ffffff' }}>{m.riderName} ({m.vehicle})</span>
+                        <span style={{ fontSize: '0.84rem', fontWeight: 700, color: isHoneybee ? '#000000' : '#ffffff' }}>{m.riderName} ({m.vehicle})</span>
                         <span className="badge-clean badge-amber" style={{ fontSize: '0.65rem' }}>{m.status}</span>
                       </div>
-                      <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                      <div style={{ fontSize: '0.75rem', color: isHoneybee ? '#52525b' : '#94a3b8' }}>
                         📍 {m.location} • Rescuer: <b>{m.assignedHelper}</b>
                       </div>
-                      <div style={{ fontSize: '0.72rem', color: '#00d293', marginTop: '4px' }}>
+                      <div style={{ fontSize: '0.72rem', color: '#15803d', marginTop: '4px' }}>
                         Live ETA: ~{m.etaMinutes} mins ({m.distanceKm} km away)
                       </div>
                     </div>
@@ -446,8 +448,8 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
               <div>
-                <h3 style={{ fontSize: '1.25rem', color: '#ffffff', fontWeight: 800 }}>Live SOS Emergency Mission Control</h3>
-                <p style={{ fontSize: '0.82rem', color: '#94a3b8' }}>
+                <h3 style={{ fontSize: '1.25rem', color: isHoneybee ? '#000000' : '#ffffff', fontWeight: 800 }}>Live SOS Emergency Mission Control</h3>
+                <p style={{ fontSize: '0.82rem', color: isHoneybee ? '#52525b' : '#94a3b8' }}>
                   Monitor ongoing electric roadside rescues, helper arrival telemetry, and SLA response compliance across Bengaluru.
                 </p>
               </div>
@@ -456,31 +458,31 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '16px' }}>
               {liveMissions.map(mission => (
-                <div key={mission.id} className="pro-card" style={{ padding: '20px', border: '1px solid #3b82f6' }}>
+                <div key={mission.id} className="pro-card" style={{ padding: '20px', border: '1.5px solid #18181b' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span className="radar-pulse" style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#00d293' }} />
-                        <h4 style={{ fontSize: '1.05rem', color: '#ffffff', fontWeight: 800 }}>{mission.riderName}</h4>
+                        <h4 style={{ fontSize: '1.05rem', color: isHoneybee ? '#000000' : '#ffffff', fontWeight: 800 }}>{mission.riderName}</h4>
                       </div>
-                      <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{mission.riderPhone} • {mission.vehicle}</span>
+                      <span style={{ fontSize: '0.75rem', color: isHoneybee ? '#52525b' : '#94a3b8' }}>{mission.riderPhone} • {mission.vehicle}</span>
                     </div>
-                    <span className="badge-clean badge-blue">{mission.status}</span>
+                    <span className="badge-clean badge-yellow">{mission.status}</span>
                   </div>
 
-                  <div style={{ background: '#090d16', padding: '12px', borderRadius: '8px', border: '1px solid #1e293b', marginBottom: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <div style={{ fontSize: '0.78rem', color: '#cbd5e1' }}>
+                  <div style={{ background: isHoneybee ? '#fefce8' : '#090d16', padding: '12px', borderRadius: '8px', border: isHoneybee ? '1.5px solid #18181b' : '1px solid #1e293b', marginBottom: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ fontSize: '0.78rem', color: isHoneybee ? '#18181b' : '#cbd5e1' }}>
                       Breakdown Pin: <b>{mission.location}</b>
                     </div>
-                    <div style={{ fontSize: '0.78rem', color: '#38bdf8' }}>
+                    <div style={{ fontSize: '0.78rem', color: isHoneybee ? '#854d0e' : '#facc15', fontWeight: 700 }}>
                       Service Required: <b>{mission.serviceType.replace('_', ' ')}</b>
                     </div>
-                    <div style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+                    <div style={{ fontSize: '0.78rem', color: isHoneybee ? '#52525b' : '#94a3b8' }}>
                       Assigned Rescuer: <b>{mission.assignedHelper}</b>
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.78rem', color: '#00d293', fontWeight: 600 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.78rem', color: '#15803d', fontWeight: 600 }}>
                     <span>ETA: ~{mission.etaMinutes} mins ({mission.distanceKm} km remaining)</span>
                     <button
                       onClick={() => alert(`Radio ping dispatched to ${mission.assignedHelper}. Telemetry verified.`)}
@@ -501,10 +503,10 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
               <div>
-                <h3 style={{ fontSize: '1.25rem', color: '#ffffff', fontWeight: 800 }}>
+                <h3 style={{ fontSize: '1.25rem', color: isHoneybee ? '#000000' : '#ffffff', fontWeight: 800 }}>
                   Pro Subscriptions & Payment History
                 </h3>
-                <p style={{ fontSize: '0.82rem', color: '#94a3b8' }}>
+                <p style={{ fontSize: '0.82rem', color: isHoneybee ? '#52525b' : '#94a3b8' }}>
                   Complete audit log of recurring Pro Pass subscribers, Razorpay transactions, and user billing records.
                 </p>
               </div>
@@ -528,7 +530,7 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.82rem' }}>
                   <thead>
-                    <tr style={{ background: '#090d16', borderBottom: '1px solid #1e293b', color: '#94a3b8', textTransform: 'uppercase', fontSize: '0.7rem', letterSpacing: '0.04em' }}>
+                    <tr style={{ background: isHoneybee ? '#f4f4f5' : '#090d16', borderBottom: isHoneybee ? '1.5px solid #18181b' : '1px solid #1e293b', color: isHoneybee ? '#71717a' : '#94a3b8', textTransform: 'uppercase', fontSize: '0.7rem', letterSpacing: '0.04em' }}>
                       <th style={{ padding: '14px 18px' }}>Subscriber</th>
                       <th style={{ padding: '14px 18px' }}>Plan</th>
                       <th style={{ padding: '14px 18px' }}>Amount Paid</th>
@@ -540,13 +542,13 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
                   </thead>
                   <tbody>
                     {filteredSubscriptions.map(sub => (
-                      <tr key={sub.id} style={{ borderBottom: '1px solid #1e293b' }}>
+                      <tr key={sub.id} style={{ borderBottom: isHoneybee ? '1.5px solid #e4e4e7' : '1px solid #1e293b' }}>
                         <td style={{ padding: '14px 18px' }}>
-                          <div style={{ fontWeight: 700, color: '#ffffff' }}>{sub.subscriberName}</div>
-                          <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{sub.email} • {sub.phone}</div>
+                          <div style={{ fontWeight: 700, color: isHoneybee ? '#000000' : '#ffffff' }}>{sub.subscriberName}</div>
+                          <div style={{ fontSize: '0.72rem', color: isHoneybee ? '#52525b' : '#94a3b8' }}>{sub.email} • {sub.phone}</div>
                         </td>
                         <td style={{ padding: '14px 18px' }}>
-                          <span style={{ color: '#60a5fa', fontWeight: 600 }}>{sub.planName}</span>
+                          <span style={{ color: '#facc15', fontWeight: 700 }}>{sub.planName}</span>
                           <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Expires: {sub.expiryDate}</div>
                         </td>
                         <td style={{ padding: '14px 18px', fontFamily: 'var(--font-mono)', fontWeight: 800, color: '#00d293' }}>
@@ -590,10 +592,10 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
               <div>
-                <h3 style={{ fontSize: '1.25rem', color: '#ffffff', fontWeight: 800 }}>
+                <h3 style={{ fontSize: '1.25rem', color: isHoneybee ? '#000000' : '#ffffff', fontWeight: 800 }}>
                   Charging Directory Moderation
                 </h3>
-                <p style={{ fontSize: '0.82rem', color: '#94a3b8' }}>
+                <p style={{ fontSize: '0.82rem', color: isHoneybee ? '#52525b' : '#94a3b8' }}>
                   Manage verified status, put faulty hardware into maintenance, and review community-submitted charging points.
                 </p>
               </div>
@@ -605,13 +607,13 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
                     key={st}
                     onClick={() => setStationFilter(st)}
                     style={{
-                      background: stationFilter === st ? '#2563eb' : '#090d16',
-                      color: stationFilter === st ? '#ffffff' : '#94a3b8',
-                      border: '1px solid #1e293b',
+                      background: stationFilter === st ? '#facc15' : (isHoneybee ? '#ffffff' : '#090d16'),
+                      color: stationFilter === st ? '#000000' : (isHoneybee ? '#52525b' : '#94a3b8'),
+                      border: stationFilter === st ? '1.5px solid #000000' : (isHoneybee ? '1.5px solid #18181b' : '1px solid #1e293b'),
                       borderRadius: '6px',
                       padding: '4px 10px',
                       fontSize: '0.75rem',
-                      fontWeight: 600,
+                      fontWeight: 800,
                       cursor: 'pointer'
                     }}
                   >
@@ -626,20 +628,20 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
                 <div key={st.id} className="pro-card" style={{ padding: '18px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                     <div>
-                      <h4 style={{ fontSize: '1rem', color: '#ffffff', fontWeight: 700 }}>{st.name}</h4>
-                      <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{st.operator} • {st.city}</span>
+                      <h4 style={{ fontSize: '1rem', color: isHoneybee ? '#000000' : '#ffffff', fontWeight: 700 }}>{st.name}</h4>
+                      <span style={{ fontSize: '0.75rem', color: isHoneybee ? '#52525b' : '#94a3b8' }}>{st.operator} • {st.city}</span>
                     </div>
-                    <span className={`badge-clean ${st.verificationStatus === 'VERIFIED' ? 'badge-green' : (st.verificationStatus === 'MAINTENANCE' ? 'badge-amber' : 'badge-blue')}`}>
+                    <span className={`badge-clean ${st.verificationStatus === 'VERIFIED' ? 'badge-green' : (st.verificationStatus === 'MAINTENANCE' ? 'badge-amber' : 'badge-yellow')}`}>
                       {st.verificationStatus}
                     </span>
                   </div>
 
-                  <p style={{ fontSize: '0.78rem', color: '#cbd5e1', marginBottom: '12px' }}>
+                  <p style={{ fontSize: '0.78rem', color: isHoneybee ? '#27272a' : '#cbd5e1', marginBottom: '12px' }}>
                     {st.address}
                   </p>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '10px', borderTop: '1px solid #1e293b' }}>
-                    <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '10px', borderTop: isHoneybee ? '1.5px solid #e4e4e7' : '1px solid #1e293b' }}>
+                    <span style={{ fontSize: '0.72rem', color: isHoneybee ? '#71717a' : '#64748b' }}>
                       Connectors: {st.connectors?.length || 1} ports
                     </span>
                     
@@ -685,21 +687,21 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
                 <div key={hlp.id} className="pro-card" style={{ padding: '18px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                     <div>
-                      <h4 style={{ fontSize: '1rem', color: '#ffffff', fontWeight: 700 }}>{hlp.displayName}</h4>
-                      <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{hlp.areaName} ({hlp.serviceRadiusKm} km coverage)</span>
+                      <h4 style={{ fontSize: '1rem', color: isHoneybee ? '#000000' : '#ffffff', fontWeight: 700 }}>{hlp.displayName}</h4>
+                      <span style={{ fontSize: '0.75rem', color: isHoneybee ? '#52525b' : '#94a3b8' }}>{hlp.areaName} ({hlp.serviceRadiusKm} km coverage)</span>
                     </div>
-                    <span className={`badge-clean ${hlp.verificationLevel === 'PHYSICALLY_VERIFIED' ? 'badge-green' : 'badge-blue'}`}>
+                    <span className={`badge-clean ${hlp.verificationLevel === 'PHYSICALLY_VERIFIED' ? 'badge-green' : 'badge-yellow'}`}>
                       {hlp.verificationLevel}
                     </span>
                   </div>
 
-                  <div style={{ background: '#090d16', padding: '10px', borderRadius: '8px', border: '1px solid #1e293b', fontSize: '0.75rem', color: '#cbd5e1', marginBottom: '12px' }}>
+                  <div style={{ background: isHoneybee ? '#fefce8' : '#090d16', padding: '10px', borderRadius: '8px', border: isHoneybee ? '1.5px solid #18181b' : '1px solid #1e293b', fontSize: '0.75rem', color: isHoneybee ? '#18181b' : '#cbd5e1', marginBottom: '12px' }}>
                     <div>Phone: <b>+91 {hlp.phone}</b></div>
                     <div>Rescues Completed: <b>{hlp.completedRescues || 0}</b> • Rating: ⭐ {hlp.rating}</div>
-                    <div style={{ color: '#00d293', marginTop: '2px' }}>Equipment: 3.3kW Portable Charger + 15m Extension Verified</div>
+                    <div style={{ color: '#15803d', marginTop: '2px', fontWeight: 600 }}>Equipment: 3.3kW Portable Charger + 15m Extension Verified</div>
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '8px', borderTop: '1px solid #1e293b' }}>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '8px', borderTop: isHoneybee ? '1.5px solid #e4e4e7' : '1px solid #1e293b' }}>
                     <button
                       onClick={() => handleToggleHelperAudit(hlp.id)}
                       className="btn-secondary"
@@ -718,8 +720,8 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
         {activeTab === 'complaints' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div>
-              <h3 style={{ fontSize: '1.25rem', color: '#ffffff', fontWeight: 800 }}>Rider Disputes & Automatic Refund Queue</h3>
-              <p style={{ fontSize: '0.82rem', color: '#94a3b8' }}>
+              <h3 style={{ fontSize: '1.25rem', color: isHoneybee ? '#000000' : '#ffffff', fontWeight: 800 }}>Rider Disputes & Automatic Refund Queue</h3>
+              <p style={{ fontSize: '0.82rem', color: isHoneybee ? '#52525b' : '#94a3b8' }}>
                 Review filed complaints for helper no-shows or equipment mismatch. Authorize instant ₹19 Razorpay refunds.
               </p>
             </div>
@@ -730,10 +732,10 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <h4 style={{ fontSize: '1rem', color: '#ffffff', fontWeight: 700 }}>Ticket #{c.id}: {c.riderName}</h4>
+                        <h4 style={{ fontSize: '1rem', color: isHoneybee ? '#000000' : '#ffffff', fontWeight: 700 }}>Ticket #{c.id}: {c.riderName}</h4>
                         <span className="badge-clean badge-amber">{c.reason}</span>
                       </div>
-                      <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '2px' }}>
+                      <div style={{ fontSize: '0.75rem', color: isHoneybee ? '#52525b' : '#94a3b8', marginTop: '2px' }}>
                         Against Rescuer: <b>{c.providerName}</b> • {c.timestamp}
                       </div>
                     </div>
@@ -742,11 +744,11 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
                     </span>
                   </div>
 
-                  <p style={{ fontSize: '0.82rem', color: '#cbd5e1', background: '#090d16', padding: '10px 12px', borderRadius: '8px', margin: '10px 0' }}>
+                  <p style={{ fontSize: '0.82rem', color: isHoneybee ? '#18181b' : '#cbd5e1', background: isHoneybee ? '#fefce8' : '#090d16', border: isHoneybee ? '1.5px solid #18181b' : 'none', padding: '10px 12px', borderRadius: '8px', margin: '10px 0' }}>
                     "{c.details}"
                   </p>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '8px', borderTop: '1px solid #1e293b' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '8px', borderTop: isHoneybee ? '1.5px solid #e4e4e7' : '1px solid #1e293b' }}>
                     <span style={{ fontSize: '0.85rem', color: '#fbbf24', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>
                       Claim Amount: {c.amount}
                     </span>

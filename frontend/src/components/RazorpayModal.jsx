@@ -7,12 +7,15 @@ export default function RazorpayModal({
   onSuccess, 
   amount = 19, 
   title = "Emergency Contact Unlock Pass",
-  description = "One-time platform entitlement for verified provider contact"
+  description = "One-time platform entitlement for verified provider contact",
+  theme
 }) {
   const [selectedMethod, setSelectedMethod] = useState('upi'); // 'upi', 'card', 'netbanking'
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [upiApp, setUpiApp] = useState('gpay');
+
+  const isHoneybee = theme !== 'obsidian' && !(typeof document !== 'undefined' && document.body.classList.contains('theme-obsidian'));
 
   if (!isOpen) return null;
 
@@ -39,8 +42,9 @@ export default function RazorpayModal({
   return (
     <div className="modal-overlay">
       <div style={{
-        background: '#ffffff',
-        color: '#0f172a',
+        background: isHoneybee ? '#ffffff' : '#121215',
+        color: isHoneybee ? '#0f172a' : '#f4f4f5',
+        border: isHoneybee ? '1.5px solid #18181b' : '1.5px solid #27272a',
         width: '100%',
         maxWidth: '460px',
         borderRadius: '14px',
@@ -50,7 +54,8 @@ export default function RazorpayModal({
       }}>
         {/* Razorpay Brand Header */}
         <div style={{
-          background: '#0c2340',
+          background: '#18181b',
+          borderBottom: '2px solid #facc15',
           padding: '16px 20px',
           color: '#ffffff',
           display: 'flex',
@@ -59,7 +64,7 @@ export default function RazorpayModal({
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{
-              background: '#3395ff',
+              background: '#facc15',
               width: '32px',
               height: '32px',
               borderRadius: '8px',
@@ -68,15 +73,16 @@ export default function RazorpayModal({
               justifyContent: 'center',
               fontWeight: 800,
               fontSize: '18px',
-              color: '#ffffff'
+              color: '#18181b',
+              border: '1.5px solid #18181b'
             }}>
               R
             </div>
             <div>
-              <div style={{ fontSize: '0.92rem', fontWeight: 700, letterSpacing: '-0.01em' }}>
+              <div style={{ fontSize: '0.92rem', fontWeight: 700, letterSpacing: '-0.01em', color: '#ffffff' }}>
                 EV Sahayak Technologies
               </div>
-              <div style={{ fontSize: '0.72rem', color: '#93c5fd', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <div style={{ fontSize: '0.72rem', color: '#facc15', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <ShieldCheck size={12} />
                 <span>Razorpay Trusted Merchant • Test Mode</span>
               </div>
@@ -99,23 +105,23 @@ export default function RazorpayModal({
 
         {/* Order Summary Ribbon */}
         <div style={{
-          background: '#f8fafc',
+          background: isHoneybee ? '#f8fafc' : '#18181b',
           padding: '12px 20px',
-          borderBottom: '1px solid #e2e8f0',
+          borderBottom: isHoneybee ? '1px solid #e2e8f0' : '1px solid #27272a',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center'
         }}>
           <div>
-            <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#1e293b' }}>
+            <div style={{ fontSize: '0.82rem', fontWeight: 600, color: isHoneybee ? '#1e293b' : '#f4f4f5' }}>
               {title}
             </div>
-            <div style={{ fontSize: '0.72rem', color: '#64748b' }}>
+            <div style={{ fontSize: '0.72rem', color: isHoneybee ? '#64748b' : '#a1a1aa' }}>
               {description}
             </div>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0c2340' }}>
+            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: isHoneybee ? '#18181b' : '#facc15' }}>
               ₹{amount}.00
             </div>
           </div>
@@ -128,8 +134,9 @@ export default function RazorpayModal({
               width: '60px',
               height: '60px',
               borderRadius: '50%',
-              background: '#dcfce7',
-              color: '#16a34a',
+              background: '#fef08a',
+              color: '#854d0e',
+              border: '1.5px solid #18181b',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -137,10 +144,10 @@ export default function RazorpayModal({
             }}>
               <CheckCircle2 size={36} />
             </div>
-            <h3 style={{ fontSize: '1.25rem', color: '#0f172a', marginBottom: '6px' }}>
+            <h3 style={{ fontSize: '1.25rem', color: isHoneybee ? '#0f172a' : '#f4f4f5', marginBottom: '6px' }}>
               Payment Successful!
             </h3>
-            <p style={{ fontSize: '0.85rem', color: '#64748b' }}>
+            <p style={{ fontSize: '0.85rem', color: isHoneybee ? '#64748b' : '#a1a1aa' }}>
               Razorpay transaction verified. Unlocking your requested entitlement...
             </p>
           </div>
@@ -149,8 +156,8 @@ export default function RazorpayModal({
             {/* Sidebar Methods */}
             <div style={{
               width: '140px',
-              background: '#f1f5f9',
-              borderRight: '1px solid #e2e8f0',
+              background: isHoneybee ? '#fafafa' : '#0e111a',
+              borderRight: isHoneybee ? '1.5px solid #18181b' : '1.5px solid #27272a',
               display: 'flex',
               flexDirection: 'column'
             }}>
@@ -158,20 +165,20 @@ export default function RazorpayModal({
                 onClick={() => setSelectedMethod('upi')}
                 style={{
                   padding: '12px 14px',
-                  background: selectedMethod === 'upi' ? '#ffffff' : 'transparent',
+                  background: selectedMethod === 'upi' ? (isHoneybee ? '#fef08a' : '#facc15') : 'transparent',
                   border: 'none',
-                  borderLeft: selectedMethod === 'upi' ? '3px solid #3395ff' : '3px solid transparent',
+                  borderLeft: selectedMethod === 'upi' ? '4px solid #18181b' : '4px solid transparent',
                   textAlign: 'left',
                   fontSize: '0.8rem',
                   fontWeight: selectedMethod === 'upi' ? 700 : 500,
-                  color: selectedMethod === 'upi' ? '#0c2340' : '#64748b',
+                  color: selectedMethod === 'upi' ? '#000000' : (isHoneybee ? '#18181b' : '#a1a1aa'),
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px'
                 }}
               >
-                <QrCode size={16} color={selectedMethod === 'upi' ? '#3395ff' : '#64748b'} />
+                <QrCode size={16} color={selectedMethod === 'upi' ? '#18181b' : (isHoneybee ? '#71717a' : '#a1a1aa')} />
                 <span>UPI / QR</span>
               </button>
 
@@ -179,20 +186,20 @@ export default function RazorpayModal({
                 onClick={() => setSelectedMethod('card')}
                 style={{
                   padding: '12px 14px',
-                  background: selectedMethod === 'card' ? '#ffffff' : 'transparent',
+                  background: selectedMethod === 'card' ? (isHoneybee ? '#fef08a' : '#facc15') : 'transparent',
                   border: 'none',
-                  borderLeft: selectedMethod === 'card' ? '3px solid #3395ff' : '3px solid transparent',
+                  borderLeft: selectedMethod === 'card' ? '4px solid #18181b' : '4px solid transparent',
                   textAlign: 'left',
                   fontSize: '0.8rem',
                   fontWeight: selectedMethod === 'card' ? 700 : 500,
-                  color: selectedMethod === 'card' ? '#0c2340' : '#64748b',
+                  color: selectedMethod === 'card' ? '#000000' : (isHoneybee ? '#18181b' : '#a1a1aa'),
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px'
                 }}
               >
-                <CreditCard size={16} color={selectedMethod === 'card' ? '#3395ff' : '#64748b'} />
+                <CreditCard size={16} color={selectedMethod === 'card' ? '#18181b' : (isHoneybee ? '#71717a' : '#a1a1aa')} />
                 <span>Cards</span>
               </button>
 
@@ -200,20 +207,20 @@ export default function RazorpayModal({
                 onClick={() => setSelectedMethod('netbanking')}
                 style={{
                   padding: '12px 14px',
-                  background: selectedMethod === 'netbanking' ? '#ffffff' : 'transparent',
+                  background: selectedMethod === 'netbanking' ? (isHoneybee ? '#fef08a' : '#facc15') : 'transparent',
                   border: 'none',
-                  borderLeft: selectedMethod === 'netbanking' ? '3px solid #3395ff' : '3px solid transparent',
+                  borderLeft: selectedMethod === 'netbanking' ? '4px solid #18181b' : '4px solid transparent',
                   textAlign: 'left',
                   fontSize: '0.8rem',
                   fontWeight: selectedMethod === 'netbanking' ? 700 : 500,
-                  color: selectedMethod === 'netbanking' ? '#0c2340' : '#64748b',
+                  color: selectedMethod === 'netbanking' ? '#000000' : (isHoneybee ? '#18181b' : '#a1a1aa'),
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px'
                 }}
               >
-                <Landmark size={16} color={selectedMethod === 'netbanking' ? '#3395ff' : '#64748b'} />
+                <Landmark size={16} color={selectedMethod === 'netbanking' ? '#18181b' : (isHoneybee ? '#71717a' : '#a1a1aa')} />
                 <span>Netbanking</span>
               </button>
             </div>
@@ -222,7 +229,7 @@ export default function RazorpayModal({
             <div style={{ flex: 1, padding: '16px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
               {selectedMethod === 'upi' && (
                 <div>
-                  <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '10px' }}>
+                  <div style={{ fontSize: '0.8rem', fontWeight: 600, color: isHoneybee ? '#334155' : '#f4f4f5', marginBottom: '10px' }}>
                     Select Fast UPI Option:
                   </div>
 
@@ -237,8 +244,9 @@ export default function RazorpayModal({
                         key={app.id}
                         onClick={() => setUpiApp(app.id)}
                         style={{
-                          border: upiApp === app.id ? '2px solid #3395ff' : '1px solid #cbd5e1',
-                          background: upiApp === app.id ? '#eff6ff' : '#ffffff',
+                          border: upiApp === app.id ? '2px solid #facc15' : (isHoneybee ? '1.5px solid #d4d4d8' : '1px solid #27272a'),
+                          background: upiApp === app.id ? (isHoneybee ? '#fef08a' : '#18181b') : (isHoneybee ? '#ffffff' : '#121215'),
+                          color: upiApp === app.id ? (isHoneybee ? '#000000' : '#facc15') : (isHoneybee ? '#18181b' : '#f4f4f5'),
                           borderRadius: '8px',
                           padding: '8px 10px',
                           fontSize: '0.78rem',
@@ -255,7 +263,7 @@ export default function RazorpayModal({
                     ))}
                   </div>
 
-                  <div style={{ fontSize: '0.75rem', color: '#64748b', background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ fontSize: '0.75rem', color: isHoneybee ? '#64748b' : '#a1a1aa', background: isHoneybee ? '#f8fafc' : '#18181b', padding: '8px', borderRadius: '6px', border: isHoneybee ? '1px solid #e2e8f0' : '1px solid #27272a' }}>
                     ⚡ Instant authorization via Razorpay UPI intent.
                   </div>
                 </div>
@@ -263,7 +271,7 @@ export default function RazorpayModal({
 
               {selectedMethod === 'card' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <div style={{ fontSize: '0.78rem', color: '#64748b' }}>Card Number</div>
+                  <div style={{ fontSize: '0.78rem', color: isHoneybee ? '#64748b' : '#a1a1aa' }}>Card Number</div>
                   <input
                     type="text"
                     readOnly
@@ -271,10 +279,10 @@ export default function RazorpayModal({
                     style={{
                       padding: '8px 10px',
                       borderRadius: '6px',
-                      border: '1px solid #cbd5e1',
+                      border: isHoneybee ? '1px solid #cbd5e1' : '1px solid #27272a',
                       fontSize: '0.85rem',
-                      background: '#f8fafc',
-                      color: '#0f172a'
+                      background: isHoneybee ? '#f8fafc' : '#18181b',
+                      color: isHoneybee ? '#0f172a' : '#f4f4f5'
                     }}
                   />
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
@@ -282,13 +290,13 @@ export default function RazorpayModal({
                       type="text"
                       readOnly
                       value="12/28"
-                      style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.8rem', background: '#f8fafc', color: '#0f172a' }}
+                      style={{ padding: '8px', borderRadius: '6px', border: isHoneybee ? '1px solid #cbd5e1' : '1px solid #27272a', fontSize: '0.8rem', background: isHoneybee ? '#f8fafc' : '#18181b', color: isHoneybee ? '#0f172a' : '#f4f4f5' }}
                     />
                     <input
                       type="text"
                       readOnly
                       value="CVV: 849"
-                      style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.8rem', background: '#f8fafc', color: '#0f172a' }}
+                      style={{ padding: '8px', borderRadius: '6px', border: isHoneybee ? '1px solid #cbd5e1' : '1px solid #27272a', fontSize: '0.8rem', background: isHoneybee ? '#f8fafc' : '#18181b', color: isHoneybee ? '#0f172a' : '#f4f4f5' }}
                     />
                   </div>
                 </div>
@@ -296,10 +304,10 @@ export default function RazorpayModal({
 
               {selectedMethod === 'netbanking' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <div style={{ fontSize: '0.78rem', color: '#64748b' }}>Popular Banks:</div>
+                  <div style={{ fontSize: '0.78rem', color: isHoneybee ? '#64748b' : '#a1a1aa' }}>Popular Banks:</div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
                     {['HDFC Bank', 'ICICI Bank', 'SBI', 'Axis Bank'].map((b, i) => (
-                      <div key={i} style={{ border: '1px solid #cbd5e1', padding: '6px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, color: '#1e293b' }}>
+                      <div key={i} style={{ border: isHoneybee ? '1px solid #cbd5e1' : '1px solid #27272a', padding: '6px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, color: isHoneybee ? '#1e293b' : '#f4f4f5', background: isHoneybee ? '#ffffff' : '#18181b' }}>
                         {b}
                       </div>
                     ))}
@@ -312,9 +320,9 @@ export default function RazorpayModal({
                 onClick={handlePay}
                 disabled={isProcessing}
                 style={{
-                  background: '#3395ff',
-                  color: '#ffffff',
-                  border: 'none',
+                  background: '#facc15',
+                  color: '#18181b',
+                  border: '1.5px solid #18181b',
                   borderRadius: '8px',
                   padding: '12px',
                   fontWeight: 700,
@@ -325,7 +333,7 @@ export default function RazorpayModal({
                   justifyContent: 'center',
                   gap: '8px',
                   marginTop: '16px',
-                  boxShadow: '0 4px 12px rgba(51, 149, 255, 0.4)'
+                  boxShadow: '0 4px 12px rgba(250, 204, 21, 0.4)'
                 }}
               >
                 {isProcessing ? (
@@ -346,14 +354,14 @@ export default function RazorpayModal({
 
         {/* Razorpay Footer */}
         <div style={{
-          background: '#f8fafc',
-          borderTop: '1px solid #e2e8f0',
+          background: isHoneybee ? '#f8fafc' : '#0e111a',
+          borderTop: isHoneybee ? '1px solid #e2e8f0' : '1px solid #27272a',
           padding: '8px 16px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           fontSize: '0.7rem',
-          color: '#64748b'
+          color: isHoneybee ? '#64748b' : '#a1a1aa'
         }}>
           <span>Secured by Razorpay • 256-bit SSL</span>
           <span>PCI-DSS Compliant</span>

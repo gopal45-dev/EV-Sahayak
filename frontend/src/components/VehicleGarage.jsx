@@ -81,7 +81,7 @@ export default function VehicleGarage({ vehicles = [], onAddVehicle, onRemoveVeh
           border: '1px dashed #334155'
         }}>
           <div style={{
-            background: 'rgba(37, 99, 235, 0.1)',
+            background: 'rgba(250, 204, 21, 0.15)',
             width: '64px',
             height: '64px',
             borderRadius: '50%',
@@ -89,7 +89,8 @@ export default function VehicleGarage({ vehicles = [], onAddVehicle, onRemoveVeh
             alignItems: 'center',
             justifyContent: 'center',
             margin: '0 auto 16px',
-            color: '#3b82f6'
+            color: '#ca8a04',
+            border: '1.5px solid #18181b'
           }}>
             <Bike size={32} />
           </div>
@@ -153,11 +154,11 @@ export default function VehicleGarage({ vehicles = [], onAddVehicle, onRemoveVeh
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: '#94a3b8' }}>Connector Type:</span>
-                  <span style={{ fontWeight: 600, color: '#38bdf8' }}>{v.connectorType.replace(/_/g, ' ')}</span>
+                  <span style={{ fontWeight: 600, color: '#facc15' }}>{v.connectorType.replace(/_/g, ' ')}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: '#94a3b8' }}>Battery Tech:</span>
-                  <span style={{ fontWeight: 600, color: v.hasSwappableBattery ? '#06b6d4' : '#94a3b8' }}>
+                  <span style={{ fontWeight: 600, color: v.hasSwappableBattery ? '#eab308' : '#94a3b8' }}>
                     {v.hasSwappableBattery ? '🔋 Swappable Modular Pack' : '⚡ Fixed Battery'}
                   </span>
                 </div>
@@ -303,8 +304,8 @@ export default function VehicleGarage({ vehicles = [], onAddVehicle, onRemoveVeh
 
               {/* Swappable Battery Check */}
               <div style={{
-                background: hasSwappableBattery ? 'rgba(6, 182, 212, 0.1)' : 'rgba(255,255,255,0.02)',
-                border: hasSwappableBattery ? '1px solid #06b6d4' : '1px solid rgba(255,255,255,0.06)',
+                background: hasSwappableBattery ? 'rgba(250, 204, 21, 0.12)' : 'rgba(255,255,255,0.02)',
+                border: hasSwappableBattery ? '1.5px solid #18181b' : '1px solid rgba(255,255,255,0.06)',
                 borderRadius: '10px',
                 padding: '12px'
               }}>
@@ -313,7 +314,7 @@ export default function VehicleGarage({ vehicles = [], onAddVehicle, onRemoveVeh
                     type="checkbox"
                     checked={hasSwappableBattery}
                     onChange={(e) => setHasSwappableBattery(e.target.checked)}
-                    style={{ accentColor: '#06b6d4', width: '16px', height: '16px' }}
+                    style={{ accentColor: '#facc15', width: '16px', height: '16px' }}
                   />
                   <span style={{ fontSize: '0.85rem', color: '#fff', fontWeight: 600 }}>
                     Vehicle features a removable / swappable battery pack

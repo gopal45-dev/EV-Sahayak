@@ -126,7 +126,7 @@ export default function AdminDashboard({ stations = [], helpers = [], onVerifySt
         <div className="pro-card" style={{ padding: '18px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8', fontSize: '0.78rem', marginBottom: '6px' }}>
             <span>Active Sahayak Helpers</span>
-            <Users size={16} color="#38bdf8" />
+            <Users size={16} color="#facc15" />
           </div>
           <div style={{ fontSize: '1.7rem', fontWeight: 800, color: '#ffffff' }}>
             {onlineHelpers} <span style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 400 }}>Online</span>
@@ -139,7 +139,7 @@ export default function AdminDashboard({ stations = [], helpers = [], onVerifySt
         <div className="pro-card" style={{ padding: '18px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8', fontSize: '0.78rem', marginBottom: '6px' }}>
             <span>Pass Model (Razorpay)</span>
-            <DollarSign size={16} color="#60a5fa" />
+            <DollarSign size={16} color="#facc15" />
           </div>
           <div style={{ fontSize: '1.7rem', fontWeight: 800, color: '#ffffff' }}>
             ₹19 <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 400 }}>/ rescue pass</span>
@@ -252,7 +252,7 @@ export default function AdminDashboard({ stations = [], helpers = [], onVerifySt
                 </div>
                 <div style={{ display: 'flex', gap: '6px' }}>
                   <span className="badge-clean badge-green">{helper.verificationLevel}</span>
-                  <span className="badge-clean badge-blue">{helper.approvalStatus}</span>
+                  <span className="badge-clean badge-yellow">{helper.approvalStatus}</span>
                 </div>
               </div>
             ))}

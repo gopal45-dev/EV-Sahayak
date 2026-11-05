@@ -6,7 +6,8 @@ import {
 } from 'lucide-react';
 import RazorpayModal from './RazorpayModal';
 
-export default function HelperPortal({ helpers = [], onRegisterHelper, onToggleStatus, currentUser }) {
+export default function HelperPortal({ helpers = [], onRegisterHelper, onToggleStatus, currentUser, theme = 'honeybee' }) {
+  const isHoneybee = theme !== 'obsidian';
   const [activeTab, setActiveTab] = useState('browse'); // 'browse', 'register', 'requests', 'analytics'
   
   // Registration Form (P0: Provider registration & equipment listing)
@@ -211,10 +212,10 @@ export default function HelperPortal({ helpers = [], onRegisterHelper, onToggleS
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
           <div>
-            <h1 style={{ fontSize: '2.1rem', color: '#ffffff', marginBottom: '6px' }}>
+            <h1 style={{ fontSize: '2.1rem', color: isHoneybee ? '#000000' : '#ffffff', marginBottom: '6px' }}>
               Earn by Rescuing Stranded EV Riders
             </h1>
-            <p style={{ color: '#94a3b8', fontSize: '0.92rem', maxWidth: '640px' }}>
+            <p style={{ color: isHoneybee ? '#52525b' : '#94a3b8', fontSize: '0.92rem', maxWidth: '640px' }}>
               List your portable charger or swappable batteries to receive paid roadside rescue requests. Manage dispatch, responses, and earnings.
             </p>
           </div>
@@ -268,26 +269,26 @@ export default function HelperPortal({ helpers = [], onRegisterHelper, onToggleS
             );
 
             return (
-              <div key={helper.id} className="pro-card" style={{ padding: '20px', borderColor: isOwner ? '#3b82f6' : '#1e293b' }}>
+              <div key={helper.id} className="pro-card" style={{ padding: '20px', borderColor: isOwner ? '#facc15' : (isHoneybee ? '#18181b' : '#27272a'), boxShadow: isOwner ? '3px 3px 0px #000000' : 'none' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <h3 style={{ fontSize: '1.1rem', color: '#ffffff' }}>
+                      <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: isHoneybee ? '#000000' : '#f4f4f5' }}>
                         {helper.displayName}
                       </h3>
                       {isOwner && (
-                        <span className="badge-clean badge-blue" style={{ fontSize: '0.65rem' }}>
+                        <span className="badge-clean badge-yellow" style={{ fontSize: '0.65rem' }}>
                           <UserCheck size={10} /> My Listing
                         </span>
                       )}
                     </div>
-                    <div style={{ fontSize: '0.78rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
-                      <MapPin size={13} />
+                    <div style={{ fontSize: '0.78rem', color: isHoneybee ? '#52525b' : '#a1a1aa', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px', fontWeight: 600 }}>
+                      <MapPin size={13} color="#ca8a04" />
                       <span>{helper.areaName} ({helper.serviceRadiusKm} km radius)</span>
                     </div>
                   </div>
                   <span className={`badge-clean ${isOnline ? 'badge-green' : 'badge-amber'}`}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: isOnline ? '#00d293' : '#f59e0b' }}></span>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: isOnline ? '#15803d' : '#f59e0b' }}></span>
                     {helper.availabilityStatus}
                   </span>
                 </div>
@@ -298,9 +299,9 @@ export default function HelperPortal({ helpers = [], onRegisterHelper, onToggleS
                     <div
                       key={i}
                       style={{
-                        background: '#090d16',
-                        border: '1px solid #1e293b',
-                        borderRadius: '10px',
+                        background: isHoneybee ? '#fafafa' : '#18181b',
+                        border: isHoneybee ? '1.5px solid #18181b' : '1.5px solid #27272a',
+                        borderRadius: '8px',
                         padding: '10px 12px',
                         display: 'flex',
                         justifyContent: 'space-between',
@@ -308,8 +309,8 @@ export default function HelperPortal({ helpers = [], onRegisterHelper, onToggleS
                       }}
                     >
                       <div>
-                        <div style={{ fontWeight: 600, fontSize: '0.85rem', color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          {svc.serviceType === 'BATTERY_SWAP' ? <BatteryCharging size={14} color="#00d293" /> : <Zap size={14} color="#38bdf8" />}
+                        <div style={{ fontWeight: 800, fontSize: '0.85rem', color: isHoneybee ? '#000000' : '#f4f4f5', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          {svc.serviceType === 'BATTERY_SWAP' ? <BatteryCharging size={14} color="#15803d" /> : <Zap size={14} color="#ca8a04" />}
                           <span>{svc.title}</span>
                         </div>
                         <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '2px' }}>
@@ -320,7 +321,7 @@ export default function HelperPortal({ helpers = [], onRegisterHelper, onToggleS
                       </div>
                       <div style={{ textAlign: 'right' }}>
                         <div style={{ fontSize: '0.68rem', color: '#64748b' }}>Service Fee</div>
-                        <div style={{ fontWeight: 700, color: '#f8fafc', fontSize: '0.95rem' }}>
+                        <div style={{ fontWeight: 700, color: isHoneybee ? '#000000' : '#f4f4f5', fontSize: '0.95rem' }}>
                           ₹{svc.estimatedServicePrice}
                         </div>
                       </div>
@@ -368,11 +369,11 @@ export default function HelperPortal({ helpers = [], onRegisterHelper, onToggleS
       {/* TAB 2: INCOMING RESCUE REQUESTS (P0: Provider responses) */}
       {activeTab === 'requests' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div className="pro-card" style={{ padding: '16px 20px', background: 'rgba(56, 189, 248, 0.08)', border: '1px solid rgba(56, 189, 248, 0.25)' }}>
-            <h3 style={{ fontSize: '1.05rem', color: '#38bdf8', marginBottom: '4px' }}>
+          <div className="pro-card" style={{ padding: '16px 20px', background: isHoneybee ? '#fefce8' : '#18181b', border: isHoneybee ? '1.5px solid #18181b' : '1.5px solid #27272a', boxShadow: isHoneybee ? '2px 2px 0px #000000' : 'none' }}>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: isHoneybee ? '#000000' : '#f4f4f5', marginBottom: '4px' }}>
               Real-Time Rescue Dispatch Queue
             </h3>
-            <p style={{ fontSize: '0.8rem', color: '#cbd5e1' }}>
+            <p style={{ fontSize: '0.8rem', color: isHoneybee ? '#52525b' : '#a1a1aa' }}>
               Confirm your readiness within 15 minutes to lock in the job and notify the rider.
             </p>
           </div>
@@ -382,24 +383,24 @@ export default function HelperPortal({ helpers = [], onRegisterHelper, onToggleS
               <div key={req.id} className="pro-card" style={{ padding: '20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                   <div>
-                    <h4 style={{ fontSize: '1.05rem', color: '#ffffff' }}>{req.riderName}</h4>
-                    <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>{req.vehicle}</span>
+                    <h4 style={{ fontSize: '1.05rem', fontWeight: 800, color: isHoneybee ? '#000000' : '#f4f4f5' }}>{req.riderName}</h4>
+                    <span style={{ fontSize: '0.78rem', color: isHoneybee ? '#52525b' : '#a1a1aa', fontWeight: 600 }}>{req.vehicle}</span>
                   </div>
-                  <span className={`badge-clean ${req.status === 'ACCEPTED' ? 'badge-green' : (req.status === 'ALREADY_ACCEPTED_BY_OTHER' ? 'badge-amber' : (req.status === 'DECLINED' ? 'badge-amber' : 'badge-blue'))}`}>
+                  <span className={`badge-clean ${req.status === 'ACCEPTED' ? 'badge-green' : (req.status === 'ALREADY_ACCEPTED_BY_OTHER' ? 'badge-amber' : (req.status === 'DECLINED' ? 'badge-amber' : 'badge-yellow'))}`}>
                     {req.status === 'ALREADY_ACCEPTED_BY_OTHER' ? 'LOCKED OUT' : req.status}
                   </span>
                 </div>
 
-                <div style={{ background: '#090d16', border: '1px solid #1e293b', borderRadius: '10px', padding: '12px', marginBottom: '14px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <div style={{ fontSize: '0.8rem', color: '#cbd5e1', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <MapPin size={14} color="#64748b" />
+                <div style={{ background: isHoneybee ? '#fefce8' : '#090d16', border: isHoneybee ? '1.5px solid #18181b' : '1px solid #1e293b', borderRadius: '10px', padding: '12px', marginBottom: '14px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <div style={{ fontSize: '0.8rem', color: isHoneybee ? '#18181b' : '#cbd5e1', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <MapPin size={14} color={isHoneybee ? '#ca8a04' : '#64748b'} />
                     <span>{req.locationAddress} ({req.distanceKm} km away)</span>
                   </div>
-                  <div style={{ fontSize: '0.8rem', color: '#cbd5e1', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div style={{ fontSize: '0.8rem', color: isHoneybee ? '#18181b' : '#cbd5e1', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <BatteryCharging size={14} color="#f43f5e" />
                     <span>Battery Critical: <b>{req.batteryPercent}% Remaining</b></span>
                   </div>
-                  <div style={{ fontSize: '0.8rem', color: '#00d293', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div style={{ fontSize: '0.8rem', color: isHoneybee ? '#15803d' : '#00d293', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <DollarSign size={14} />
                     <span>Payout: ₹{req.proposedPrice}</span>
                   </div>
@@ -480,66 +481,66 @@ export default function HelperPortal({ helpers = [], onRegisterHelper, onToggleS
             </div>
 
             <div className="pro-card" style={{ padding: '18px' }}>
-              <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginBottom: '6px' }}>Avg Response Time</div>
-              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#38bdf8' }}>8.2 mins</div>
-              <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '4px' }}>Within 15-min PRD benchmark</div>
+              <div style={{ fontSize: '0.78rem', color: isHoneybee ? '#71717a' : '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>Avg Response Time</div>
+              <div style={{ fontSize: '1.8rem', fontWeight: 900, color: isHoneybee ? '#000000' : '#f4f4f5' }}>8.2 mins</div>
+              <div style={{ fontSize: '0.72rem', color: isHoneybee ? '#71717a' : '#a1a1aa', marginTop: '4px' }}>Within 15-min PRD benchmark</div>
             </div>
 
             <div className="pro-card" style={{ padding: '18px' }}>
-              <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginBottom: '6px' }}>Total Rescues</div>
-              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#ffffff' }}>38</div>
-              <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '4px' }}>100% resolution success</div>
+              <div style={{ fontSize: '0.78rem', color: isHoneybee ? '#71717a' : '#94a3b8', marginBottom: '6px' }}>Total Rescues</div>
+              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: isHoneybee ? '#000000' : '#ffffff' }}>38</div>
+              <div style={{ fontSize: '0.72rem', color: isHoneybee ? '#52525b' : '#64748b', marginTop: '4px' }}>100% resolution success</div>
             </div>
 
             <div className="pro-card" style={{ padding: '18px' }}>
-              <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginBottom: '6px' }}>Settled Earnings</div>
-              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#fbbf24' }}>₹8,450</div>
-              <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '4px' }}>Direct UPI settlement</div>
+              <div style={{ fontSize: '0.78rem', color: isHoneybee ? '#71717a' : '#94a3b8', marginBottom: '6px' }}>Settled Earnings</div>
+              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: isHoneybee ? '#ca8a04' : '#fbbf24' }}>₹8,450</div>
+              <div style={{ fontSize: '0.72rem', color: isHoneybee ? '#52525b' : '#64748b', marginTop: '4px' }}>Direct UPI settlement</div>
             </div>
           </div>
 
           {/* Performance Breakdown */}
           <div className="pro-card" style={{ padding: '24px' }}>
-            <h3 style={{ fontSize: '1.1rem', color: '#ffffff', marginBottom: '14px' }}>
+            <h3 style={{ fontSize: '1.1rem', color: isHoneybee ? '#000000' : '#ffffff', marginBottom: '14px' }}>
               Dispatch Activity & Ratings Overview
             </h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
-              <div style={{ background: '#090d16', border: '1px solid #1e293b', borderRadius: '12px', padding: '16px' }}>
-                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#ffffff', marginBottom: '10px' }}>
+              <div style={{ background: isHoneybee ? '#fafafa' : '#090d16', border: isHoneybee ? '1.5px solid #18181b' : '1px solid #1e293b', borderRadius: '12px', padding: '16px' }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: isHoneybee ? '#000000' : '#ffffff', marginBottom: '10px' }}>
                   Customer Ratings Breakdown
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#cbd5e1' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: isHoneybee ? '#18181b' : '#cbd5e1' }}>
                     <span>5 Stars (Excellent speed)</span>
-                    <span style={{ color: '#00d293', fontWeight: 700 }}>34 (89%)</span>
+                    <span style={{ color: '#15803d', fontWeight: 700 }}>34 (89%)</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#cbd5e1' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: isHoneybee ? '#18181b' : '#cbd5e1' }}>
                     <span>4 Stars (Good service)</span>
-                    <span style={{ color: '#38bdf8', fontWeight: 700 }}>4 (11%)</span>
+                    <span style={{ color: '#ca8a04', fontWeight: 800 }}>4 (11%)</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#cbd5e1' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: isHoneybee ? '#71717a' : '#cbd5e1' }}>
                     <span>Below 3 Stars</span>
-                    <span style={{ color: '#64748b', fontWeight: 700 }}>0 (0%)</span>
+                    <span style={{ color: '#71717a', fontWeight: 700 }}>0 (0%)</span>
                   </div>
                 </div>
               </div>
 
-              <div style={{ background: '#090d16', border: '1px solid #1e293b', borderRadius: '12px', padding: '16px' }}>
-                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#ffffff', marginBottom: '10px' }}>
+              <div style={{ background: isHoneybee ? '#fafafa' : '#090d16', border: isHoneybee ? '1.5px solid #18181b' : '1px solid #1e293b', borderRadius: '12px', padding: '16px' }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: isHoneybee ? '#000000' : '#ffffff', marginBottom: '10px' }}>
                   Most Frequent Rescue Hubs
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#cbd5e1' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: isHoneybee ? '#18181b' : '#cbd5e1' }}>
                     <span>Indiranagar & 100ft Rd</span>
-                    <span style={{ color: '#ffffff', fontWeight: 600 }}>18 rescues</span>
+                    <span style={{ color: isHoneybee ? '#000000' : '#ffffff', fontWeight: 600 }}>18 rescues</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#cbd5e1' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: isHoneybee ? '#18181b' : '#cbd5e1' }}>
                     <span>Domlur & Old Airport Rd</span>
-                    <span style={{ color: '#ffffff', fontWeight: 600 }}>12 rescues</span>
+                    <span style={{ color: isHoneybee ? '#000000' : '#ffffff', fontWeight: 600 }}>12 rescues</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#cbd5e1' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: isHoneybee ? '#18181b' : '#cbd5e1' }}>
                     <span>Koramangala 4th Block</span>
-                    <span style={{ color: '#ffffff', fontWeight: 600 }}>8 rescues</span>
+                    <span style={{ color: isHoneybee ? '#000000' : '#ffffff', fontWeight: 600 }}>8 rescues</span>
                   </div>
                 </div>
               </div>
@@ -551,7 +552,7 @@ export default function HelperPortal({ helpers = [], onRegisterHelper, onToggleS
       {/* TAB 4: REGISTER & LIST EQUIPMENT */}
       {activeTab === 'register' && (
         <div className="pro-card" style={{ maxWidth: '680px', margin: '0 auto', padding: '28px' }}>
-          <h2 style={{ fontSize: '1.35rem', color: '#ffffff', marginBottom: '6px' }}>
+          <h2 style={{ fontSize: '1.35rem', color: isHoneybee ? '#000000' : '#ffffff', marginBottom: '6px' }}>
             List Your Rescue Equipment
           </h2>
           <p style={{ color: '#94a3b8', fontSize: '0.84rem', marginBottom: '22px' }}>
@@ -622,9 +623,9 @@ export default function HelperPortal({ helpers = [], onRegisterHelper, onToggleS
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '6px' }}>
               {/* Service 1: Portable Charger */}
               <div style={{
-                background: offerPortableCharger ? 'rgba(37, 99, 235, 0.1)' : '#090d16',
-                border: offerPortableCharger ? '1px solid #2563eb' : '1px solid #1e293b',
-                borderRadius: '10px',
+                background: offerPortableCharger ? '#fef08a' : '#fafafa',
+                border: offerPortableCharger ? '2px solid #000000' : '1.5px solid #18181b',
+                borderRadius: '8px',
                 padding: '12px 14px'
               }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginBottom: offerPortableCharger ? '10px' : '0' }}>
@@ -632,7 +633,7 @@ export default function HelperPortal({ helpers = [], onRegisterHelper, onToggleS
                     type="checkbox"
                     checked={offerPortableCharger}
                     onChange={(e) => setOfferPortableCharger(e.target.checked)}
-                    style={{ accentColor: '#2563eb', width: '16px', height: '16px' }}
+                    style={{ accentColor: '#facc15', width: '16px', height: '16px' }}
                   />
                   <span style={{ fontWeight: 600, color: '#ffffff', fontSize: '0.88rem' }}>
                     ⚡ I offer Portable Charger Rescue
@@ -668,8 +669,8 @@ export default function HelperPortal({ helpers = [], onRegisterHelper, onToggleS
 
               {/* Service 2: Battery Swap */}
               <div style={{
-                background: offerBatterySwap ? 'rgba(0, 210, 147, 0.1)' : '#090d16',
-                border: offerBatterySwap ? '1px solid #00d293' : '1px solid #1e293b',
+                background: offerBatterySwap ? 'rgba(0, 210, 147, 0.1)' : (isHoneybee ? '#fafafa' : '#090d16'),
+                border: offerBatterySwap ? '1.5px solid #00d293' : (isHoneybee ? '1.5px solid #18181b' : '1px solid #1e293b'),
                 borderRadius: '10px',
                 padding: '12px 14px'
               }}>
@@ -680,7 +681,7 @@ export default function HelperPortal({ helpers = [], onRegisterHelper, onToggleS
                     onChange={(e) => setOfferBatterySwap(e.target.checked)}
                     style={{ accentColor: '#00d293', width: '16px', height: '16px' }}
                   />
-                  <span style={{ fontWeight: 600, color: '#ffffff', fontSize: '0.88rem' }}>
+                  <span style={{ fontWeight: 600, color: isHoneybee ? '#000000' : '#ffffff', fontSize: '0.88rem' }}>
                     🔋 I offer Modular Battery Swap Delivery
                   </span>
                 </label>
@@ -688,7 +689,7 @@ export default function HelperPortal({ helpers = [], onRegisterHelper, onToggleS
                 {offerBatterySwap && (
                   <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
                     <div>
-                      <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Compatible Scooter Models</span>
+                      <span style={{ fontSize: '0.72rem', color: isHoneybee ? '#71717a' : '#64748b' }}>Compatible Scooter Models</span>
                       <input
                         type="text"
                         value={batteryModels}
@@ -698,7 +699,7 @@ export default function HelperPortal({ helpers = [], onRegisterHelper, onToggleS
                       />
                     </div>
                     <div>
-                      <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Your Swap Fee (₹)</span>
+                      <span style={{ fontSize: '0.72rem', color: isHoneybee ? '#71717a' : '#64748b' }}>Your Swap Fee (₹)</span>
                       <input
                         type="number"
                         value={batteryPrice}
@@ -713,8 +714,8 @@ export default function HelperPortal({ helpers = [], onRegisterHelper, onToggleS
 
             {/* Paid Activation Ribbon (₹49) */}
             <div style={{
-              background: '#090d16',
-              border: '1px solid #1e293b',
+              background: isHoneybee ? '#fefce8' : '#090d16',
+              border: isHoneybee ? '1.5px solid #18181b' : '1px solid #1e293b',
               borderRadius: '10px',
               padding: '12px 16px',
               display: 'flex',
@@ -722,14 +723,14 @@ export default function HelperPortal({ helpers = [], onRegisterHelper, onToggleS
               alignItems: 'center'
             }}>
               <div>
-                <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#ffffff' }}>
+                <div style={{ fontSize: '0.82rem', fontWeight: 600, color: isHoneybee ? '#000000' : '#ffffff' }}>
                   Helper Registration & Audit Fee
                 </div>
-                <div style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                <div style={{ fontSize: '0.72rem', color: isHoneybee ? '#71717a' : '#64748b' }}>
                   One-time onboarding pass processed securely via Razorpay
                 </div>
               </div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#00d293' }}>
+              <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#15803d' }}>
                 ₹49
               </div>
             </div>

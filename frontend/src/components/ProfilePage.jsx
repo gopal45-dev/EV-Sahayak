@@ -17,7 +17,8 @@ export default function ProfilePage({
   helpers = []
 }) {
   const [activeSection, setActiveSection] = useState('garage'); // 'garage', 'rider_history', 'helper_history', 'payments', 'subscription'
-  const isRoyal = theme === 'royal';
+  const isHoneybee = theme !== 'obsidian';
+  const isRoyal = isHoneybee;
 
   // Vehicles state & default vehicle selector (P0: Multiple vehicle profiles)
   const [selectedDefaultId, setSelectedDefaultId] = useState(vehicles[0]?.id || '');
@@ -234,20 +235,21 @@ export default function ProfilePage({
               width: '64px',
               height: '64px',
               borderRadius: '50%',
-              background: isRoyal ? '#1d4ed8' : '#2563eb',
-              color: '#ffffff',
+              background: '#000000',
+              color: '#facc15',
+              border: '2px solid #000000',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: '26px',
-              fontWeight: 800,
-              boxShadow: isRoyal ? '0 6px 16px rgba(29, 78, 216, 0.25)' : '0 6px 16px rgba(37, 99, 235, 0.3)'
+              fontWeight: 900,
+              boxShadow: '3px 3px 0px #000000'
             }}>
               {currentUser?.name?.charAt(0) || 'U'}
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: isRoyal ? '#0f172a' : '#ffffff' }}>
+                <h1 style={{ fontSize: '1.6rem', fontWeight: 900, color: isRoyal ? '#000000' : '#f4f4f5' }}>
                   {currentUser?.name || 'EV Rider'}
                 </h1>
                 {isProSubscribed ? (
@@ -255,20 +257,20 @@ export default function ProfilePage({
                     <Crown size={12} /> PRO PASS ACTIVE
                   </span>
                 ) : (
-                  <span className="badge-clean badge-blue">
+                  <span className="badge-clean badge-yellow">
                     {currentUser?.role || 'MEMBER'}
                   </span>
                 )}
               </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', marginTop: '6px', fontSize: '0.82rem', color: isRoyal ? '#64748b' : '#94a3b8' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', marginTop: '6px', fontSize: '0.82rem', color: isRoyal ? '#52525b' : '#a1a1aa', fontWeight: 600 }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <Phone size={14} /> +91 {currentUser?.phone || '98451 00000'}
                 </span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <MapPin size={14} color={isRoyal ? '#059669' : '#00d293'} /> {currentUser?.location?.address || 'Bengaluru, Karnataka'}
+                  <MapPin size={14} color="#15803d" /> {currentUser?.location?.address || 'Bengaluru, Karnataka'}
                 </span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <ShieldCheck size={14} color={isRoyal ? '#1d4ed8' : '#38bdf8'} /> KYC & Phone Verified
+                  <ShieldCheck size={14} color="#15803d" /> KYC & Phone Verified
                 </span>
               </div>
             </div>
@@ -310,22 +312,18 @@ export default function ProfilePage({
         <button
           onClick={() => setActiveSection('garage')}
           style={{
-            background: activeSection === 'garage' 
-              ? (isRoyal ? '#1d4ed8' : '#2563eb') 
-              : 'transparent',
-            color: activeSection === 'garage' 
-              ? '#ffffff' 
-              : (isRoyal ? '#475569' : '#94a3b8'),
-            border: 'none',
-            borderRadius: '10px',
+            background: activeSection === 'garage' ? '#facc15' : 'transparent',
+            color: activeSection === 'garage' ? '#000000' : (isRoyal ? '#000000' : '#f4f4f5'),
+            border: activeSection === 'garage' ? '1.5px solid #000000' : '1.5px solid transparent',
+            borderRadius: '6px',
             padding: '9px 16px',
-            fontWeight: 700,
+            fontWeight: activeSection === 'garage' ? 800 : 600,
             fontSize: '0.88rem',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            transition: 'all 0.15s ease'
+            boxShadow: activeSection === 'garage' ? '2px 2px 0px #000000' : 'none'
           }}
         >
           <Bike size={18} />
@@ -335,22 +333,18 @@ export default function ProfilePage({
         <button
           onClick={() => setActiveSection('rider_history')}
           style={{
-            background: activeSection === 'rider_history' 
-              ? (isRoyal ? '#1d4ed8' : '#2563eb') 
-              : 'transparent',
-            color: activeSection === 'rider_history' 
-              ? '#ffffff' 
-              : (isRoyal ? '#475569' : '#94a3b8'),
-            border: 'none',
-            borderRadius: '10px',
+            background: activeSection === 'rider_history' ? '#facc15' : 'transparent',
+            color: activeSection === 'rider_history' ? '#000000' : (isRoyal ? '#000000' : '#f4f4f5'),
+            border: activeSection === 'rider_history' ? '1.5px solid #000000' : '1.5px solid transparent',
+            borderRadius: '6px',
             padding: '9px 16px',
-            fontWeight: 700,
+            fontWeight: activeSection === 'rider_history' ? 800 : 600,
             fontSize: '0.88rem',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            transition: 'all 0.15s ease'
+            boxShadow: activeSection === 'rider_history' ? '2px 2px 0px #000000' : 'none'
           }}
         >
           <AlertCircle size={18} />
@@ -360,22 +354,18 @@ export default function ProfilePage({
         <button
           onClick={() => setActiveSection('helper_history')}
           style={{
-            background: activeSection === 'helper_history' 
-              ? (isRoyal ? '#1d4ed8' : '#2563eb') 
-              : 'transparent',
-            color: activeSection === 'helper_history' 
-              ? '#ffffff' 
-              : (isRoyal ? '#475569' : '#94a3b8'),
-            border: 'none',
-            borderRadius: '10px',
+            background: activeSection === 'helper_history' ? '#facc15' : 'transparent',
+            color: activeSection === 'helper_history' ? '#000000' : (isRoyal ? '#000000' : '#f4f4f5'),
+            border: activeSection === 'helper_history' ? '1.5px solid #000000' : '1.5px solid transparent',
+            borderRadius: '6px',
             padding: '9px 16px',
-            fontWeight: 700,
+            fontWeight: activeSection === 'helper_history' ? 800 : 600,
             fontSize: '0.88rem',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            transition: 'all 0.15s ease'
+            boxShadow: activeSection === 'helper_history' ? '2px 2px 0px #000000' : 'none'
           }}
         >
           <History size={18} />
@@ -385,22 +375,18 @@ export default function ProfilePage({
         <button
           onClick={() => setActiveSection('payments')}
           style={{
-            background: activeSection === 'payments' 
-              ? (isRoyal ? '#1d4ed8' : '#2563eb') 
-              : 'transparent',
-            color: activeSection === 'payments' 
-              ? '#ffffff' 
-              : (isRoyal ? '#475569' : '#94a3b8'),
-            border: 'none',
-            borderRadius: '10px',
+            background: activeSection === 'payments' ? '#facc15' : 'transparent',
+            color: activeSection === 'payments' ? '#000000' : (isRoyal ? '#000000' : '#f4f4f5'),
+            border: activeSection === 'payments' ? '1.5px solid #000000' : '1.5px solid transparent',
+            borderRadius: '6px',
             padding: '9px 16px',
-            fontWeight: 700,
+            fontWeight: activeSection === 'payments' ? 800 : 600,
             fontSize: '0.88rem',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            transition: 'all 0.15s ease'
+            boxShadow: activeSection === 'payments' ? '2px 2px 0px #000000' : 'none'
           }}
         >
           <CreditCard size={18} />
@@ -410,21 +396,18 @@ export default function ProfilePage({
         <button
           onClick={() => setActiveSection('subscription')}
           style={{
-            background: activeSection === 'subscription' 
-              ? (isRoyal ? '#1d4ed8' : '#2563eb') 
-              : 'transparent',
-            color: activeSection === 'subscription' 
-              ? '#ffffff' 
-              : (isRoyal ? '#475569' : '#94a3b8'),
-            border: 'none',
-            borderRadius: '10px',
+            background: activeSection === 'subscription' ? '#facc15' : 'transparent',
+            color: activeSection === 'subscription' ? '#000000' : (isRoyal ? '#000000' : '#f4f4f5'),
+            border: activeSection === 'subscription' ? '1.5px solid #000000' : '1.5px solid transparent',
+            borderRadius: '6px',
             padding: '9px 16px',
-            fontWeight: 700,
+            fontWeight: activeSection === 'subscription' ? 800 : 600,
             fontSize: '0.88rem',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
+            boxShadow: activeSection === 'subscription' ? '2px 2px 0px #000000' : 'none',
             transition: 'all 0.15s ease'
           }}
         >
@@ -474,19 +457,20 @@ export default function ProfilePage({
 
                 return (
                   <div key={veh.id || index} className="pro-card" style={{
-                    background: isRoyal ? '#ffffff' : '#0f172a',
+                    background: isRoyal ? '#ffffff' : '#121215',
                     padding: '20px',
-                    borderColor: isDefault ? (isRoyal ? '#1d4ed8' : '#3b82f6') : (isRoyal ? '#cbd5e1' : '#1e293b'),
+                    borderColor: isDefault ? (isRoyal ? '#000000' : '#facc15') : (isRoyal ? '#18181b' : '#27272a'),
+                    boxShadow: isDefault ? '3px 3px 0px #000000' : 'none',
                     position: 'relative'
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: isRoyal ? '#0f172a' : '#ffffff' }}>
+                          <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: isRoyal ? '#000000' : '#f4f4f5' }}>
                             {veh.brand} {veh.modelName}
                           </h3>
                         </div>
-                        <div style={{ fontSize: '0.78rem', color: isRoyal ? '#64748b' : '#94a3b8' }}>
+                        <div style={{ fontSize: '0.78rem', color: isRoyal ? '#52525b' : '#a1a1aa', fontWeight: 600 }}>
                           {veh.variant || 'Standard'} • Year {veh.year || 2024}
                         </div>
                       </div>
@@ -499,12 +483,13 @@ export default function ProfilePage({
                         <button
                           onClick={() => setSelectedDefaultId(veh.id)}
                           style={{
-                            background: 'transparent',
-                            border: isRoyal ? '1px solid #cbd5e1' : '1px solid #334155',
+                            background: isRoyal ? '#f4f4f5' : '#18181b',
+                            border: isRoyal ? '1.5px solid #18181b' : '1.5px solid #27272a',
                             borderRadius: '6px',
-                            padding: '3px 8px',
+                            padding: '4px 10px',
                             fontSize: '0.72rem',
-                            color: isRoyal ? '#1d4ed8' : '#38bdf8',
+                            color: isRoyal ? '#000000' : '#f4f4f5',
+                            fontWeight: 700,
                             cursor: 'pointer'
                           }}
                         >
@@ -513,14 +498,14 @@ export default function ProfilePage({
                       )}
                     </div>
 
-                    <div style={{ background: isRoyal ? '#f8fafc' : '#090d16', border: isRoyal ? '1px solid #e2e8f0' : '1px solid #1e293b', borderRadius: '10px', padding: '12px', marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      <div style={{ fontSize: '0.78rem', color: isRoyal ? '#475569' : '#cbd5e1', display: 'flex', justifyContent: 'space-between' }}>
+                    <div style={{ background: isRoyal ? '#fafafa' : '#18181b', border: isRoyal ? '1.5px solid #18181b' : '1.5px solid #27272a', borderRadius: '8px', padding: '12px', marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <div style={{ fontSize: '0.78rem', color: isRoyal ? '#18181b' : '#f4f4f5', display: 'flex', justifyContent: 'space-between' }}>
                         <span>Charging Connector:</span>
                         <b>{veh.connectorType?.replace(/_/g, ' ') || '15A AC 3-Pin'}</b>
                       </div>
-                      <div style={{ fontSize: '0.78rem', color: isRoyal ? '#475569' : '#cbd5e1', display: 'flex', justifyContent: 'space-between' }}>
+                      <div style={{ fontSize: '0.78rem', color: isRoyal ? '#18181b' : '#f4f4f5', display: 'flex', justifyContent: 'space-between' }}>
                         <span>Battery System:</span>
-                        <b style={{ color: veh.hasSwappableBattery ? '#00d293' : (isRoyal ? '#1d4ed8' : '#38bdf8') }}>
+                        <b style={{ color: veh.hasSwappableBattery ? '#15803d' : '#ca8a04' }}>
                           {veh.hasSwappableBattery ? 'Modular Swappable' : 'Fixed In-Chassis Pack'}
                         </b>
                       </div>
@@ -714,7 +699,7 @@ export default function ProfilePage({
                   </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '1.2rem', fontWeight: 800, color: isRoyal ? '#1d4ed8' : '#38bdf8' }}>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 900, color: isRoyal ? '#000000' : '#f4f4f5' }}>
                     {tx.amount}
                   </div>
                   <span className={`badge-clean ${tx.refundStatus === 'CREDITED_INR_19' ? 'badge-amber' : 'badge-green'}`}>
@@ -724,14 +709,15 @@ export default function ProfilePage({
               </div>
 
               {tx.refundStatus === 'NONE' && (
-                <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '8px', borderTop: isRoyal ? '1px solid #f1f5f9' : '1px solid #1e293b' }}>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '8px', borderTop: isRoyal ? '1.5px solid #18181b' : '1.5px solid #27272a' }}>
                   <button
                     onClick={() => handleOpenComplaint(tx)}
                     style={{
                       background: 'transparent',
                       border: 'none',
-                      color: isRoyal ? '#1d4ed8' : '#38bdf8',
+                      color: isRoyal ? '#000000' : '#facc15',
                       fontSize: '0.75rem',
+                      fontWeight: 700,
                       cursor: 'pointer',
                       textDecoration: 'underline'
                     }}
@@ -748,26 +734,27 @@ export default function ProfilePage({
       {/* SECTION 5: EV SAHAYAK PRO MONTHLY SUBSCRIPTION (P1: Monthly subscriptions) */}
       {activeSection === 'subscription' && (
         <div className="pro-card" style={{
-          background: isRoyal ? '#ffffff' : '#0f172a',
+          background: isRoyal ? '#ffffff' : '#121215',
           padding: '32px',
-          border: isRoyal ? '1px solid #cbd5e1' : '1px solid #1e293b'
+          border: isRoyal ? '1.5px solid #18181b' : '1.5px solid #27272a',
+          boxShadow: isRoyal ? '4px 4px 0px #000000' : 'none'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-            <Sparkles size={24} color="#fbbf24" />
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: isRoyal ? '#0f172a' : '#ffffff' }}>
+            <Sparkles size={24} color="#facc15" />
+            <h2 style={{ fontSize: '1.4rem', fontWeight: 900, color: isRoyal ? '#000000' : '#f4f4f5' }}>
               EV Sahayak Pro Monthly Membership
             </h2>
           </div>
-          <p style={{ fontSize: '0.88rem', color: isRoyal ? '#475569' : '#94a3b8', marginBottom: '24px', maxWidth: '640px' }}>
+          <p style={{ fontSize: '0.88rem', color: isRoyal ? '#52525b' : '#a1a1aa', marginBottom: '24px', maxWidth: '640px' }}>
             Designed for regular EV commuters and delivery fleet riders across Bengaluru. Never worry about roadside breakdown access charges.
           </p>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '28px' }}>
-            <div style={{ background: isRoyal ? '#f8fafc' : '#090d16', border: isRoyal ? '1px solid #e2e8f0' : '1px solid #1e293b', borderRadius: '12px', padding: '20px' }}>
-              <div style={{ fontSize: '1rem', fontWeight: 700, color: isRoyal ? '#0f172a' : '#ffffff', marginBottom: '12px' }}>
+            <div style={{ background: isRoyal ? '#fafafa' : '#18181b', border: isRoyal ? '1.5px solid #18181b' : '1.5px solid #27272a', borderRadius: '8px', padding: '20px' }}>
+              <div style={{ fontSize: '1rem', fontWeight: 800, color: isRoyal ? '#000000' : '#f4f4f5', marginBottom: '12px' }}>
                 Pro Plan Benefits
               </div>
-              <ul style={{ paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.82rem', color: isRoyal ? '#475569' : '#cbd5e1' }}>
+              <ul style={{ paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.82rem', color: isRoyal ? '#18181b' : '#d4d4d8' }}>
                 <li><b>Unlimited Free Contact Unlocks:</b> ₹19 platform fee waived for 30 days.</li>
                 <li><b>Priority Helper Dispatch:</b> Requests sent to nearest top-tier helpers first.</li>
                 <li><b>Direct Tele-Assistance:</b> 24/7 dedicated helpline pin.</li>
@@ -775,12 +762,12 @@ export default function ProfilePage({
               </ul>
             </div>
 
-            <div style={{ background: isRoyal ? '#eff6ff' : '#0f1a33', border: isRoyal ? '1px solid #bfdbfe' : '1px solid #1d4ed8', borderRadius: '12px', padding: '24px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-              <div style={{ fontSize: '0.85rem', color: isRoyal ? '#1d4ed8' : '#60a5fa', fontWeight: 700 }}>
+            <div style={{ background: isRoyal ? '#fefce8' : '#18181b', border: isRoyal ? '2px solid #000000' : '2px solid #facc15', borderRadius: '8px', padding: '24px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', boxShadow: isRoyal ? '3px 3px 0px #000000' : 'none' }}>
+              <div style={{ fontSize: '0.85rem', color: isRoyal ? '#854d0e' : '#facc15', fontWeight: 800 }}>
                 MONTHLY PASS
               </div>
-              <div style={{ fontSize: '2.5rem', fontWeight: 800, color: isRoyal ? '#0f172a' : '#ffffff', margin: '8px 0' }}>
-                ₹199 <span style={{ fontSize: '0.9rem', color: '#64748b', fontWeight: 400 }}>/ month</span>
+              <div style={{ fontSize: '2.5rem', fontWeight: 900, color: isRoyal ? '#000000' : '#facc15', margin: '8px 0' }}>
+                ₹199 <span style={{ fontSize: '0.9rem', color: isRoyal ? '#71717a' : '#a1a1aa', fontWeight: 600 }}>/ month</span>
               </div>
               {isProSubscribed ? (
                 <div style={{ color: '#00d293', fontWeight: 700, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -882,7 +869,7 @@ export default function ProfilePage({
                     type="checkbox"
                     checked={hasSwappableBattery}
                     onChange={(e) => setHasSwappableBattery(e.target.checked)}
-                    style={{ accentColor: '#1d4ed8', width: '16px', height: '16px' }}
+                    style={{ accentColor: '#facc15', width: '16px', height: '16px' }}
                   />
                   <span>Has Modular / Swappable Removable Battery</span>
                 </label>

@@ -45,10 +45,10 @@ export default function InteractiveMap({ stations = [], helpers = [], selectedIt
       let iconColor = '#10b981'; // Green
       let label = '⚡';
       if (isSwap) {
-        iconColor = '#06b6d4'; // Cyan
+        iconColor = '#eab308'; // Amber
         label = '🔄';
       } else if (isAther) {
-        iconColor = '#3b82f6';
+        iconColor = '#facc15'; // Honeybee Yellow
       }
 
       const customIcon = L.divIcon({
@@ -173,7 +173,7 @@ export default function InteractiveMap({ stations = [], helpers = [], selectedIt
           <span>Charging Station (Free Search)</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#06b6d4' }}></span>
+          <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#eab308' }}></span>
           <span>Battery Swap Station</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>

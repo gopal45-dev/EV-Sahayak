@@ -31,21 +31,21 @@ export default function ThreeVisualizer({ theme = 'obsidian', mode = 'energy_cor
     container.innerHTML = '';
     container.appendChild(renderer.domElement);
 
-    // Color definitions based on theme
-    const isRoyal = theme === 'royal';
-    const primaryColor = isRoyal ? 0x1d4ed8 : 0x2563eb; // Royal Blue
-    const accentRed = isRoyal ? 0xdc2626 : 0xef4444;    // Crimson Red
-    const accentCyan = isRoyal ? 0x0284c7 : 0x00d293;   // Cyan / Mint
+    // Color definitions based on Honeybee Industrial theme
+    const isObsidian = theme === 'obsidian';
+    const primaryYellow = 0xfacc15; // Honeybee Yellow
+    const accentDark = isObsidian ? 0x27272a : 0x18181b;  // Architectural Black
+    const accentGold = 0xeab308;    // Electric Amber/Gold
 
     // 2. Lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, isRoyal ? 1.4 : 0.9);
+    const ambientLight = new THREE.AmbientLight(0xffffff, isObsidian ? 1.0 : 1.5);
     scene.add(ambientLight);
 
-    const dirLight1 = new THREE.DirectionalLight(primaryColor, 2.5);
+    const dirLight1 = new THREE.DirectionalLight(primaryYellow, 2.5);
     dirLight1.position.set(5, 5, 5);
     scene.add(dirLight1);
 
-    const dirLight2 = new THREE.DirectionalLight(accentRed, 2.0);
+    const dirLight2 = new THREE.DirectionalLight(accentGold, 2.0);
     dirLight2.position.set(-5, -3, 3);
     scene.add(dirLight2);
 
@@ -53,15 +53,15 @@ export default function ThreeVisualizer({ theme = 'obsidian', mode = 'energy_cor
     const coreGroup = new THREE.Group();
     scene.add(coreGroup);
 
-    // Central Battery Cylinder (Pivotal Cell)
+    // Central Battery Cylinder (Pivotal Cell in Honeybee Yellow)
     const cellGeom = new THREE.CylinderGeometry(0.75, 0.75, 2.2, 32);
     const cellMat = new THREE.MeshStandardMaterial({
-      color: primaryColor,
+      color: primaryYellow,
       metalness: 0.8,
       roughness: 0.2,
       wireframe: false,
       transparent: true,
-      opacity: 0.85
+      opacity: 0.92
     });
     const cellMesh = new THREE.Mesh(cellGeom, cellMat);
     coreGroup.add(cellMesh);
@@ -69,34 +69,34 @@ export default function ThreeVisualizer({ theme = 'obsidian', mode = 'energy_cor
     // Battery Terminal Top (+ Node)
     const capGeom = new THREE.CylinderGeometry(0.35, 0.35, 0.3, 24);
     const capMat = new THREE.MeshStandardMaterial({
-      color: accentRed,
+      color: accentDark,
       metalness: 0.9,
       roughness: 0.1,
-      emissive: accentRed,
-      emissiveIntensity: 0.3
+      emissive: accentDark,
+      emissiveIntensity: 0.2
     });
     const capMesh = new THREE.Mesh(capGeom, capMat);
     capMesh.position.y = 1.25;
     coreGroup.add(capMesh);
 
-    // Outer Torus Ring 1 (Royal Blue Orbit)
+    // Outer Torus Ring 1 (Honeybee Orbit)
     const ring1Geom = new THREE.TorusGeometry(1.5, 0.04, 16, 64);
     const ring1Mat = new THREE.MeshStandardMaterial({
-      color: primaryColor,
-      emissive: primaryColor,
-      emissiveIntensity: 0.4,
+      color: primaryYellow,
+      emissive: primaryYellow,
+      emissiveIntensity: 0.3,
       metalness: 0.7
     });
     const ring1 = new THREE.Mesh(ring1Geom, ring1Mat);
     ring1.rotation.x = Math.PI / 3;
     coreGroup.add(ring1);
 
-    // Outer Torus Ring 2 (Crimson Red Orbit)
+    // Outer Torus Ring 2 (Amber Gold Orbit)
     const ring2Geom = new THREE.TorusGeometry(1.8, 0.035, 16, 64);
     const ring2Mat = new THREE.MeshStandardMaterial({
-      color: accentRed,
-      emissive: accentRed,
-      emissiveIntensity: 0.5,
+      color: accentGold,
+      emissive: accentGold,
+      emissiveIntensity: 0.4,
       metalness: 0.7
     });
     const ring2 = new THREE.Mesh(ring2Geom, ring2Mat);
@@ -106,10 +106,10 @@ export default function ThreeVisualizer({ theme = 'obsidian', mode = 'energy_cor
     // Outer Wireframe Cage (Energy Shield)
     const shieldGeom = new THREE.IcosahedronGeometry(2.3, 1);
     const shieldMat = new THREE.MeshBasicMaterial({
-      color: isRoyal ? 0x2563eb : 0x38bdf8,
+      color: isObsidian ? 0x52525b : 0x18181b,
       wireframe: true,
       transparent: true,
-      opacity: isRoyal ? 0.35 : 0.25
+      opacity: isObsidian ? 0.35 : 0.2
     });
     const shield = new THREE.Mesh(shieldGeom, shieldMat);
     coreGroup.add(shield);
@@ -126,7 +126,7 @@ export default function ThreeVisualizer({ theme = 'obsidian', mode = 'energy_cor
     particleGeom.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
     const particleMat = new THREE.PointsMaterial({
       size: 0.08,
-      color: isRoyal ? 0xdc2626 : 0x00d293,
+      color: primaryYellow,
       transparent: true,
       opacity: 0.75
     });
@@ -261,12 +261,13 @@ export default function ThreeVisualizer({ theme = 'obsidian', mode = 'energy_cor
         display: 'flex',
         alignItems: 'center',
         gap: '6px',
-        background: theme === 'royal' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(15, 23, 42, 0.85)',
-        border: theme === 'royal' ? '1px solid #cbd5e1' : '1px solid #1e293b',
-        borderRadius: '20px',
-        padding: '3px 10px',
+        background: theme === 'obsidian' ? 'rgba(15, 23, 42, 0.85)' : '#ffffff',
+        border: theme === 'obsidian' ? '1px solid #1e293b' : '1.5px solid #18181b',
+        borderRadius: '6px',
+        padding: '4px 10px',
         fontSize: '0.7rem',
-        color: theme === 'royal' ? '#1d4ed8' : '#60a5fa',
+        color: theme === 'obsidian' ? '#facc15' : '#000000',
+        boxShadow: theme === 'obsidian' ? 'none' : '1.5px 1.5px 0px #000000',
         pointerEvents: 'none',
         backdropFilter: 'blur(4px)',
         fontWeight: 600

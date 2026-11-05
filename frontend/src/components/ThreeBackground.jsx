@@ -1,21 +1,22 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
-export default function ThreeBackground({ theme = 'royal' }) {
+export default function ThreeBackground({ theme = 'honeybee' }) {
   const mountRef = useRef(null);
 
   useEffect(() => {
     const container = mountRef.current;
     if (!container) return;
 
-    const isRoyal = theme === 'royal';
-    const primaryColor = isRoyal ? 0x1d4ed8 : 0x2563eb;
-    const accentRed = isRoyal ? 0xdc2626 : 0x00d293;
-    const secondaryColor = isRoyal ? 0x3b82f6 : 0x38bdf8;
+    const isObsidian = theme === 'obsidian';
+    // In white theme: completely remove black background wireframes so text is 100% legible
+    const primaryColor = isObsidian ? 0x3f3f46 : 0xfef08a;
+    const accentYellow = 0xfacc15; // Honeybee Yellow beacons
+    const secondaryYellow = 0xeab308;
 
     // 1. Scene, Camera, Renderer
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(isRoyal ? 0xf8fafc : 0x090d16, 0.018);
+    scene.fog = new THREE.FogExp2(isObsidian ? 0x09090b : 0xfafafa, 0.02);
 
     const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.set(0, 18, 42);
@@ -27,7 +28,7 @@ export default function ThreeBackground({ theme = 'royal' }) {
     container.innerHTML = '';
     container.appendChild(renderer.domElement);
 
-    // 2. Procedural Undulating Cyber Terrain Mesh
+    // 2. Procedural Undulating Cyber Terrain Mesh (Very subtle in white theme, no black background)
     const gridCols = 55;
     const gridRows = 55;
     const terrainGeom = new THREE.PlaneGeometry(120, 120, gridCols, gridRows);
@@ -37,10 +38,10 @@ export default function ThreeBackground({ theme = 'royal' }) {
     const origPositions = new Float32Array(posAttr.array); // snapshot base coords
 
     const terrainMat = new THREE.MeshBasicMaterial({
-      color: primaryColor,
+      color: isObsidian ? 0x3f3f46 : 0xfde047,
       wireframe: true,
       transparent: true,
-      opacity: isRoyal ? 0.38 : 0.45
+      opacity: isObsidian ? 0.32 : 0.04
     });
 
     const terrain = new THREE.Mesh(terrainGeom, terrainMat);
@@ -53,8 +54,8 @@ export default function ThreeBackground({ theme = 'royal' }) {
     const crestPositions = new Float32Array(crestCount * 3);
     const crestColors = new Float32Array(crestCount * 3);
 
-    const c1 = new THREE.Color(accentRed);
-    const c2 = new THREE.Color(secondaryColor);
+    const c1 = new THREE.Color(accentYellow);
+    const c2 = new THREE.Color(secondaryYellow);
 
     for (let i = 0; i < crestCount; i++) {
       crestPositions[i * 3] = (Math.random() - 0.5) * 90;
@@ -71,11 +72,11 @@ export default function ThreeBackground({ theme = 'royal' }) {
     crestPointsGeom.setAttribute('color', new THREE.BufferAttribute(crestColors, 3));
 
     const crestPointsMat = new THREE.PointsMaterial({
-      size: 0.9,
+      size: isObsidian ? 0.9 : 0.6,
       vertexColors: true,
       transparent: true,
-      opacity: isRoyal ? 0.65 : 0.85,
-      blending: isRoyal ? THREE.NormalBlending : THREE.AdditiveBlending
+      opacity: isObsidian ? 0.85 : 0.25,
+      blending: isObsidian ? THREE.AdditiveBlending : THREE.NormalBlending
     });
 
     const crestPoints = new THREE.Points(crestPointsGeom, crestPointsMat);
@@ -88,10 +89,10 @@ export default function ThreeBackground({ theme = 'royal' }) {
     // Ring 1
     const ring1Geom = new THREE.TorusGeometry(8, 0.08, 16, 64);
     const ring1Mat = new THREE.MeshBasicMaterial({
-      color: primaryColor,
+      color: isObsidian ? 0x3f3f46 : 0xfacc15,
       wireframe: true,
       transparent: true,
-      opacity: isRoyal ? 0.3 : 0.4
+      opacity: isObsidian ? 0.4 : 0.08
     });
     const ring1 = new THREE.Mesh(ring1Geom, ring1Mat);
     ring1.position.set(-28, 14, -10);
@@ -101,10 +102,10 @@ export default function ThreeBackground({ theme = 'royal' }) {
     // Ring 2
     const ring2Geom = new THREE.TorusGeometry(12, 0.08, 16, 64);
     const ring2Mat = new THREE.MeshBasicMaterial({
-      color: accentRed,
+      color: secondaryYellow,
       wireframe: true,
       transparent: true,
-      opacity: isRoyal ? 0.3 : 0.4
+      opacity: isObsidian ? 0.4 : 0.08
     });
     const ring2 = new THREE.Mesh(ring2Geom, ring2Mat);
     ring2.position.set(30, 8, -15);
@@ -114,10 +115,10 @@ export default function ThreeBackground({ theme = 'royal' }) {
     // Polyhedron Node
     const polyGeom = new THREE.OctahedronGeometry(2.5, 0);
     const polyMat = new THREE.MeshBasicMaterial({
-      color: isRoyal ? 0xdc2626 : 0x00d293,
+      color: accentYellow,
       wireframe: true,
       transparent: true,
-      opacity: 0.45
+      opacity: isObsidian ? 0.45 : 0.1
     });
     const polyMesh = new THREE.Mesh(polyGeom, polyMat);
     polyMesh.position.set(0, 16, -20);
