@@ -14,6 +14,33 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
   const [helperList, setHelperList] = useState(helpers);
   const [stationFilter, setStationFilter] = useState('ALL'); // 'ALL', 'VERIFIED', 'PENDING', 'MAINTENANCE'
   const [subscriptionSearch, setSubscriptionSearch] = useState('');
+  const [isSyncingStations, setIsSyncingStations] = useState(false);
+  const [syncStatusText, setSyncStatusText] = useState('');
+
+  const handleSyncStations = async () => {
+    setIsSyncingStations(true);
+    setSyncStatusText('Fetching stations from Live API...');
+    try {
+      const res = await fetch('http://localhost:5000/api/stations/fetch-live', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ radiusKm: 35, limit: 30 })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSyncStatusText(`✓ Synced ${data.fetchedCount} live stations to Database (${data.totalInDb} in DB).`);
+        const fetchRes = await fetch('http://localhost:5000/api/stations');
+        const stData = await fetchRes.json();
+        if (stData.success && stData.stations) {
+          setStationList(stData.stations);
+        }
+      }
+    } catch (e) {
+      setSyncStatusText(`Failed: ${e.message}`);
+    } finally {
+      setIsSyncingStations(false);
+    }
+  };
 
   // 1. Pro Subscriptions & Recurring Revenue State (Explicit User Requirement)
   const [subscriptions, setSubscriptions] = useState([
@@ -600,8 +627,19 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
                 </p>
               </div>
 
-              {/* Status Filter Pills */}
-              <div style={{ display: 'flex', gap: '6px' }}>
+              {/* Status Filter Pills & API Sync Trigger */}
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <button
+                  onClick={handleSyncStations}
+                  disabled={isSyncingStations}
+                  className="btn-primary"
+                  style={{ padding: '5px 12px', fontSize: '0.78rem' }}
+                  title="Fetch live EV stations via API into Database"
+                >
+                  <RefreshCw size={13} className={isSyncingStations ? 'animate-spin' : ''} />
+                  <span>{isSyncingStations ? 'Syncing...' : 'Sync Station DB'}</span>
+                </button>
+
                 {['ALL', 'VERIFIED', 'PENDING', 'MAINTENANCE'].map(st => (
                   <button
                     key={st}
@@ -622,6 +660,25 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
                 ))}
               </div>
             </div>
+
+            {syncStatusText && (
+              <div style={{
+                background: '#fef08a',
+                border: '1.5px solid #000000',
+                borderRadius: '8px',
+                padding: '8px 14px',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                color: '#000000',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '2px 2px 0px #000000'
+              }}>
+                <RefreshCw size={14} />
+                <span>{syncStatusText}</span>
+              </div>
+            )}
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
               {filteredStations.map(st => (

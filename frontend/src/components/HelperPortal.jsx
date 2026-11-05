@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   HeartHandshake, BatteryCharging, Zap, MapPin, ShieldCheck, 
   Power, Plus, CheckCircle2, Lock, ArrowRight, UserCheck, 
@@ -29,33 +29,33 @@ export default function HelperPortal({ helpers = [], onRegisterHelper, onToggleS
   const [showRazorpay, setShowRazorpay] = useState(false);
   const [pendingHelperData, setPendingHelperData] = useState(null);
 
-  // Live incoming rescue dispatch requests queue (P0: Provider responses)
-  const [incomingRequests, setIncomingRequests] = useState([
-    {
-      id: 'req_live_701',
-      riderName: 'Arun K.',
-      vehicle: 'Ather 450X (Ather Proprietary)',
-      batteryPercent: 6,
-      distanceKm: 1.8,
-      locationAddress: 'Near Indiranagar Metro, 100ft Rd',
-      serviceType: 'PORTABLE_CHARGER',
-      proposedPrice: 249,
-      timestamp: '2 mins ago',
-      status: 'PENDING' // 'PENDING', 'ACCEPTED', 'DECLINED'
-    },
-    {
-      id: 'req_live_702',
-      riderName: 'Pooja Sharma',
-      vehicle: 'Hero Vida V1 (Modular Swappable)',
-      batteryPercent: 4,
-      distanceKm: 3.2,
-      locationAddress: 'Old Airport Road, Domlur Flyover',
-      serviceType: 'BATTERY_SWAP',
-      proposedPrice: 199,
-      timestamp: '6 mins ago',
-      status: 'PENDING'
-    }
-  ]);
+  // Helper profile for logged in user
+  const cleanPhone = currentUser?.phone ? currentUser.phone.replace(/\D/g, '') : '';
+  const myHelperProfile = helpers.find(h => 
+    (cleanPhone && h.phone && h.phone.replace(/\D/g, '').includes(cleanPhone)) ||
+    (currentUser?.name && h.displayName && h.displayName.toLowerCase().includes(currentUser.name.toLowerCase()))
+  );
+
+  // Live incoming rescue dispatch requests queue (dynamically loaded from backend)
+  const [incomingRequests, setIncomingRequests] = useState([]);
+
+  useEffect(() => {
+    const fetchLiveRequests = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/requests');
+        const data = await res.json();
+        if (data.success && Array.isArray(data.requests)) {
+          setIncomingRequests(data.requests);
+        }
+      } catch (err) {
+        // Keep current state if server is momentarily unreachable
+      }
+    };
+
+    fetchLiveRequests();
+    const interval = setInterval(fetchLiveRequests, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleRequestResponse = async (requestId, action) => {
     if (action === 'ACCEPT') {
@@ -258,112 +258,145 @@ export default function HelperPortal({ helpers = [], onRegisterHelper, onToggleS
 
       {/* TAB 1: BROWSE ALL REGISTERED HELPERS */}
       {activeTab === 'browse' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '18px' }}>
-          {helpers.map(helper => {
-            const isOnline = helper.availabilityStatus === 'AVAILABLE';
-            const isOwner = currentUser && (
-              helper.ownerId === currentUser.phone || 
-              helper.ownerId === currentUser.name ||
-              helper.phone === currentUser.phone ||
-              helper.displayName === currentUser.name
-            );
+        helpers.length === 0 ? (
+          <div className="pro-card" style={{ padding: '40px 24px', textAlign: 'center', background: isHoneybee ? '#ffffff' : '#121215' }}>
+            <div style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '50%',
+              background: '#fef08a',
+              border: '1.5px solid #000000',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 16px',
+              boxShadow: '2px 2px 0px #000000'
+            }}>
+              <HeartHandshake size={28} color="#000000" />
+            </div>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: isHoneybee ? '#000000' : '#f4f4f5', marginBottom: '8px' }}>
+              No Registered Helpers Yet
+            </h3>
+            <p style={{ fontSize: '0.85rem', color: isHoneybee ? '#52525b' : '#a1a1aa', maxWidth: '460px', margin: '0 auto 20px', lineHeight: 1.6 }}>
+              The verified community helper registry has zero pre-seeded records. Have portable charging equipment or swappable batteries? Register as a verified helper to start receiving paid roadside rescue requests.
+            </p>
+            <button
+              onClick={() => setActiveTab('register')}
+              className="btn-primary"
+              style={{ padding: '10px 22px', fontSize: '0.88rem' }}
+            >
+              <Plus size={16} />
+              <span>Register as Helper (₹49 Audit Pass)</span>
+            </button>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '18px' }}>
+            {helpers.map(helper => {
+              const isOnline = helper.availabilityStatus === 'AVAILABLE';
+              const isOwner = currentUser && (
+                helper.ownerId === currentUser.phone || 
+                helper.ownerId === currentUser.name ||
+                helper.phone === currentUser.phone ||
+                helper.displayName === currentUser.name
+              );
 
-            return (
-              <div key={helper.id} className="pro-card" style={{ padding: '20px', borderColor: isOwner ? '#facc15' : (isHoneybee ? '#18181b' : '#27272a'), boxShadow: isOwner ? '3px 3px 0px #000000' : 'none' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: isHoneybee ? '#000000' : '#f4f4f5' }}>
-                        {helper.displayName}
-                      </h3>
-                      {isOwner && (
-                        <span className="badge-clean badge-yellow" style={{ fontSize: '0.65rem' }}>
-                          <UserCheck size={10} /> My Listing
-                        </span>
-                      )}
-                    </div>
-                    <div style={{ fontSize: '0.78rem', color: isHoneybee ? '#52525b' : '#a1a1aa', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px', fontWeight: 600 }}>
-                      <MapPin size={13} color="#ca8a04" />
-                      <span>{helper.areaName} ({helper.serviceRadiusKm} km radius)</span>
-                    </div>
-                  </div>
-                  <span className={`badge-clean ${isOnline ? 'badge-green' : 'badge-amber'}`}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: isOnline ? '#15803d' : '#f59e0b' }}></span>
-                    {helper.availabilityStatus}
-                  </span>
-                </div>
-
-                {/* Services Offered */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', margin: '14px 0' }}>
-                  {helper.services?.map((svc, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        background: isHoneybee ? '#fafafa' : '#18181b',
-                        border: isHoneybee ? '1.5px solid #18181b' : '1.5px solid #27272a',
-                        borderRadius: '8px',
-                        padding: '10px 12px',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center'
-                      }}
-                    >
-                      <div>
-                        <div style={{ fontWeight: 800, fontSize: '0.85rem', color: isHoneybee ? '#000000' : '#f4f4f5', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          {svc.serviceType === 'BATTERY_SWAP' ? <BatteryCharging size={14} color="#15803d" /> : <Zap size={14} color="#ca8a04" />}
-                          <span>{svc.title}</span>
-                        </div>
-                        <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '2px' }}>
-                          {svc.serviceType === 'BATTERY_SWAP' 
-                            ? `Modular Battery: ${svc.batteryModels?.join(', ')}`
-                            : `Power: ${svc.chargerKwRating}kW • Reach: ${svc.cableLengthMeters}m`}
-                        </div>
+              return (
+                <div key={helper.id} className="pro-card" style={{ padding: '20px', borderColor: isOwner ? '#facc15' : (isHoneybee ? '#18181b' : '#27272a'), boxShadow: isOwner ? '3px 3px 0px #000000' : 'none' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: isHoneybee ? '#000000' : '#f4f4f5' }}>
+                          {helper.displayName}
+                        </h3>
+                        {isOwner && (
+                          <span className="badge-clean badge-yellow" style={{ fontSize: '0.65rem' }}>
+                            <UserCheck size={10} /> My Listing
+                          </span>
+                        )}
                       </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontSize: '0.68rem', color: '#64748b' }}>Service Fee</div>
-                        <div style={{ fontWeight: 700, color: isHoneybee ? '#000000' : '#f4f4f5', fontSize: '0.95rem' }}>
-                          ₹{svc.estimatedServicePrice}
-                        </div>
+                      <div style={{ fontSize: '0.78rem', color: isHoneybee ? '#52525b' : '#a1a1aa', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px', fontWeight: 600 }}>
+                        <MapPin size={13} color="#ca8a04" />
+                        <span>{helper.areaName} ({helper.serviceRadiusKm} km radius)</span>
                       </div>
                     </div>
-                  ))}
-                </div>
+                    <span className={`badge-clean ${isOnline ? 'badge-green' : 'badge-amber'}`}>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: isOnline ? '#15803d' : '#f59e0b' }}></span>
+                      {helper.availabilityStatus}
+                    </span>
+                  </div>
 
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  paddingTop: '12px',
-                  borderTop: '1px solid #1e293b',
-                  fontSize: '0.78rem',
-                  color: '#94a3b8'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <ShieldCheck size={14} color="#00d293" />
-                    <span>{helper.verificationLevel?.replace('_', ' ') || 'COMMUNITY VERIFIED'}</span>
+                  {/* Services Offered */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', margin: '14px 0' }}>
+                    {helper.services?.map((svc, i) => (
+                      <div
+                        key={i}
+                        style={{
+                          background: isHoneybee ? '#fafafa' : '#18181b',
+                          border: isHoneybee ? '1.5px solid #18181b' : '1.5px solid #27272a',
+                          borderRadius: '8px',
+                          padding: '10px 12px',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center'
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontWeight: 800, fontSize: '0.85rem', color: isHoneybee ? '#000000' : '#f4f4f5', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            {svc.serviceType === 'BATTERY_SWAP' ? <BatteryCharging size={14} color="#15803d" /> : <Zap size={14} color="#ca8a04" />}
+                            <span>{svc.title}</span>
+                          </div>
+                          <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '2px' }}>
+                            {svc.serviceType === 'BATTERY_SWAP' 
+                              ? `Modular Battery: ${svc.batteryModels?.join(', ')}`
+                              : `Power: ${svc.chargerKwRating}kW • Reach: ${svc.cableLengthMeters}m`}
+                          </div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontSize: '0.68rem', color: '#64748b' }}>Service Fee</div>
+                          <div style={{ fontWeight: 700, color: isHoneybee ? '#000000' : '#f4f4f5', fontSize: '0.95rem' }}>
+                            ₹{svc.estimatedServicePrice}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div>
-                    ⭐ <b>{helper.rating}</b> ({helper.completedRescues || 12} rescues)
-                  </div>
-                </div>
 
-                {/* Availability Toggle */}
-                {isOwner && onToggleStatus && (
-                  <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px dashed #334155' }}>
-                    <button
-                      onClick={() => onToggleStatus(helper.id)}
-                      className={isOnline ? 'btn-secondary' : 'btn-primary'}
-                      style={{ width: '100%', fontSize: '0.8rem', padding: '8px' }}
-                    >
-                      <Power size={14} />
-                      <span>{isOnline ? 'Go Offline (Pause Requests)' : 'Go Online (Accept Rescues)'}</span>
-                    </button>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    paddingTop: '12px',
+                    borderTop: '1px solid #1e293b',
+                    fontSize: '0.78rem',
+                    color: '#94a3b8'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <ShieldCheck size={14} color="#00d293" />
+                      <span>{helper.verificationLevel?.replace('_', ' ') || 'COMMUNITY VERIFIED'}</span>
+                    </div>
+                    <div>
+                      ⭐ <b>{helper.rating || '5.0'}</b> ({helper.completedRescues || 0} rescues)
+                    </div>
                   </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+
+                  {/* Availability Toggle */}
+                  {isOwner && onToggleStatus && (
+                    <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px dashed #334155' }}>
+                      <button
+                        onClick={() => onToggleStatus(helper.id)}
+                        className={isOnline ? 'btn-secondary' : 'btn-primary'}
+                        style={{ width: '100%', fontSize: '0.8rem', padding: '8px' }}
+                      >
+                        <Power size={14} />
+                        <span>{isOnline ? 'Go Offline (Pause Requests)' : 'Go Online (Accept Rescues)'}</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )
       )}
 
       {/* TAB 2: INCOMING RESCUE REQUESTS (P0: Provider responses) */}
@@ -378,94 +411,108 @@ export default function HelperPortal({ helpers = [], onRegisterHelper, onToggleS
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '16px' }}>
-            {incomingRequests.map(req => (
-              <div key={req.id} className="pro-card" style={{ padding: '20px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                  <div>
-                    <h4 style={{ fontSize: '1.05rem', fontWeight: 800, color: isHoneybee ? '#000000' : '#f4f4f5' }}>{req.riderName}</h4>
-                    <span style={{ fontSize: '0.78rem', color: isHoneybee ? '#52525b' : '#a1a1aa', fontWeight: 600 }}>{req.vehicle}</span>
+          {incomingRequests.length === 0 ? (
+            <div className="pro-card" style={{ padding: '36px 24px', textAlign: 'center', background: isHoneybee ? '#ffffff' : '#121215' }}>
+              <Clock size={32} color="#ca8a04" style={{ margin: '0 auto 12px' }} />
+              <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: isHoneybee ? '#000000' : '#f4f4f5', marginBottom: '6px' }}>
+                Queue Clear • No Active Breakdown Dispatches
+              </h4>
+              <p style={{ fontSize: '0.82rem', color: isHoneybee ? '#52525b' : '#a1a1aa', maxWidth: '420px', margin: '0 auto' }}>
+                When a nearby EV rider in Bengaluru requests mobile roadside charging or a battery swap, dispatch pings will appear here with live GPS coordinates.
+              </p>
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '16px' }}>
+              {incomingRequests.map(req => (
+                <div key={req.id} className="pro-card" style={{ padding: '20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                    <div>
+                      <h4 style={{ fontSize: '1.05rem', fontWeight: 800, color: isHoneybee ? '#000000' : '#f4f4f5' }}>{req.riderName || req.userName || 'Stranded EV Rider'}</h4>
+                      <span style={{ fontSize: '0.78rem', color: isHoneybee ? '#52525b' : '#a1a1aa', fontWeight: 600 }}>
+                        {req.vehicle?.brand} {req.vehicle?.modelName || req.vehicle}
+                      </span>
+                    </div>
+                    <span className={`badge-clean ${req.status === 'ACCEPTED' ? 'badge-green' : (req.status === 'ALREADY_ACCEPTED_BY_OTHER' ? 'badge-amber' : (req.status === 'DECLINED' ? 'badge-amber' : 'badge-yellow'))}`}>
+                      {req.status === 'ALREADY_ACCEPTED_BY_OTHER' ? 'LOCKED OUT' : req.status}
+                    </span>
                   </div>
-                  <span className={`badge-clean ${req.status === 'ACCEPTED' ? 'badge-green' : (req.status === 'ALREADY_ACCEPTED_BY_OTHER' ? 'badge-amber' : (req.status === 'DECLINED' ? 'badge-amber' : 'badge-yellow'))}`}>
-                    {req.status === 'ALREADY_ACCEPTED_BY_OTHER' ? 'LOCKED OUT' : req.status}
-                  </span>
-                </div>
 
-                <div style={{ background: isHoneybee ? '#fefce8' : '#090d16', border: isHoneybee ? '1.5px solid #18181b' : '1px solid #1e293b', borderRadius: '10px', padding: '12px', marginBottom: '14px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <div style={{ fontSize: '0.8rem', color: isHoneybee ? '#18181b' : '#cbd5e1', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <MapPin size={14} color={isHoneybee ? '#ca8a04' : '#64748b'} />
-                    <span>{req.locationAddress} ({req.distanceKm} km away)</span>
+                  <div style={{ background: isHoneybee ? '#fefce8' : '#090d16', border: isHoneybee ? '1.5px solid #18181b' : '1px solid #1e293b', borderRadius: '10px', padding: '12px', marginBottom: '14px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ fontSize: '0.8rem', color: isHoneybee ? '#18181b' : '#cbd5e1', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <MapPin size={14} color={isHoneybee ? '#ca8a04' : '#64748b'} />
+                      <span>{req.locationAddress} ({req.distanceKm || 2.1} km away)</span>
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: isHoneybee ? '#18181b' : '#cbd5e1', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <BatteryCharging size={14} color="#f43f5e" />
+                      <span>Battery Critical: <b>{req.batteryRemainingPercent || req.batteryPercent || 5}% Remaining</b></span>
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: isHoneybee ? '#15803d' : '#00d293', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <DollarSign size={14} />
+                      <span>Payout: ₹{req.proposedPrice || (req.requestedService === 'BATTERY_SWAP' ? 199 : 249)}</span>
+                    </div>
                   </div>
-                  <div style={{ fontSize: '0.8rem', color: isHoneybee ? '#18181b' : '#cbd5e1', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <BatteryCharging size={14} color="#f43f5e" />
-                    <span>Battery Critical: <b>{req.batteryPercent}% Remaining</b></span>
-                  </div>
-                  <div style={{ fontSize: '0.8rem', color: isHoneybee ? '#15803d' : '#00d293', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <DollarSign size={14} />
-                    <span>Payout: ₹{req.proposedPrice}</span>
-                  </div>
-                </div>
 
-                {req.status === 'ALREADY_ACCEPTED_BY_OTHER' ? (
-                  <div style={{
-                    background: 'rgba(239, 68, 68, 0.08)',
-                    border: '1px solid rgba(239, 68, 68, 0.3)',
-                    borderRadius: '8px',
-                    padding: '10px 14px',
-                    fontSize: '0.78rem',
-                    color: '#f87171',
-                    textAlign: 'center'
-                  }}>
-                    <div style={{ fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                      <Lock size={14} />
-                      <span>Job Locked to Another Helper</span>
+                  {req.status === 'ALREADY_ACCEPTED_BY_OTHER' ? (
+                    <div style={{
+                      background: 'rgba(239, 68, 68, 0.08)',
+                      border: '1px solid rgba(239, 68, 68, 0.3)',
+                      borderRadius: '8px',
+                      padding: '10px 14px',
+                      fontSize: '0.78rem',
+                      color: '#f87171',
+                      textAlign: 'center'
+                    }}>
+                      <div style={{ fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                        <Lock size={14} />
+                        <span>Job Locked to Another Helper</span>
+                      </div>
+                      <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '2px' }}>
+                        Accepted by {req.lockedBy || 'another nearby rescuer'}. Only 1 helper can take this job.
+                      </div>
                     </div>
-                    <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '2px' }}>
-                      Accepted by {req.lockedBy || 'another nearby rescuer'}. Only 1 helper can take this job.
+                  ) : req.status === 'ACCEPTED' ? (
+                    <div style={{
+                      background: 'rgba(0, 210, 147, 0.1)',
+                      border: '1px solid #00d293',
+                      borderRadius: '8px',
+                      padding: '10px 14px',
+                      fontSize: '0.78rem',
+                      color: '#00d293',
+                      textAlign: 'center'
+                    }}>
+                      <div style={{ fontWeight: 700 }}>Exclusive Lock Active</div>
+                      <div style={{ fontSize: '0.72rem', color: '#cbd5e1', marginTop: '2px' }}>
+                        Locked exclusively to you at {req.confirmedAt || 'just now'}. No other helper can take this job.
+                      </div>
                     </div>
-                  </div>
-                ) : req.status === 'ACCEPTED' ? (
-                  <div style={{
-                    background: 'rgba(0, 210, 147, 0.1)',
-                    border: '1px solid #00d293',
-                    borderRadius: '8px',
-                    padding: '10px 14px',
-                    fontSize: '0.78rem',
-                    color: '#00d293',
-                    textAlign: 'center'
-                  }}>
-                    <div style={{ fontWeight: 700 }}>Exclusive Lock Active</div>
-                    <div style={{ fontSize: '0.72rem', color: '#cbd5e1', marginTop: '2px' }}>
-                      Locked exclusively to you at {req.confirmedAt || 'just now'}. No other helper can take this job.
+                  ) : req.status === 'DECLINED' ? (
+                    <div style={{ fontSize: '0.75rem', color: '#94a3b8', textAlign: 'center' }}>
+                      Request declined by you
                     </div>
-                  </div>
-                ) : req.status === 'DECLINED' ? (
-                  <div style={{ fontSize: '0.75rem', color: '#94a3b8', textAlign: 'center' }}>
-                    Request declined by you
-                  </div>
-                ) : (
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                    <button
-                      onClick={() => handleRequestResponse(req.id, 'DECLINE')}
-                      className="btn-secondary"
-                      style={{ fontSize: '0.8rem', padding: '8px' }}
-                    >
-                      <X size={14} />
-                      <span>Decline</span>
-                    </button>
-                    <button
-                      onClick={() => handleRequestResponse(req.id, 'ACCEPT')}
-                      className="btn-primary"
-                      style={{ fontSize: '0.8rem', padding: '8px' }}
-                    >
-                      <Check size={14} />
-                      <span>Accept & Lock Job</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+                  ) : (
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                      <button
+                        onClick={() => handleRequestResponse(req.id, 'DECLINE')}
+                        className="btn-secondary"
+                        style={{ fontSize: '0.8rem', padding: '8px' }}
+                      >
+                        <X size={14} />
+                        <span>Decline</span>
+                      </button>
+                      <button
+                        onClick={() => handleRequestResponse(req.id, 'ACCEPT')}
+                        className="btn-primary"
+                        style={{ fontSize: '0.8rem', padding: '8px' }}
+                      >
+                        <Check size={14} />
+                        <span>Accept & Lock Job</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -475,26 +522,36 @@ export default function HelperPortal({ helpers = [], onRegisterHelper, onToggleS
           {/* Key Metrics Row */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
             <div className="pro-card" style={{ padding: '18px' }}>
-              <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginBottom: '6px' }}>Acceptance Rate</div>
-              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#00d293' }}>96.4%</div>
-              <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '4px' }}>Top 5% provider in Bengaluru</div>
+              <div style={{ fontSize: '0.78rem', color: isHoneybee ? '#71717a' : '#94a3b8', marginBottom: '6px' }}>Acceptance Rate</div>
+              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#00d293' }}>
+                {(myHelperProfile?.completedRescues || 0) > 0 ? '100%' : '100%'}
+              </div>
+              <div style={{ fontSize: '0.72rem', color: isHoneybee ? '#52525b' : '#64748b', marginTop: '4px' }}>
+                {(myHelperProfile?.completedRescues || 0) > 0 ? 'Consistent responder' : 'Ready to accept jobs'}
+              </div>
             </div>
 
             <div className="pro-card" style={{ padding: '18px' }}>
               <div style={{ fontSize: '0.78rem', color: isHoneybee ? '#71717a' : '#a1a1aa', marginBottom: '6px', fontWeight: 600 }}>Avg Response Time</div>
-              <div style={{ fontSize: '1.8rem', fontWeight: 900, color: isHoneybee ? '#000000' : '#f4f4f5' }}>8.2 mins</div>
+              <div style={{ fontSize: '1.8rem', fontWeight: 900, color: isHoneybee ? '#000000' : '#f4f4f5' }}>
+                {myHelperProfile?.responseAvgMinutes ? `${myHelperProfile.responseAvgMinutes} mins` : '8-10 mins'}
+              </div>
               <div style={{ fontSize: '0.72rem', color: isHoneybee ? '#71717a' : '#a1a1aa', marginTop: '4px' }}>Within 15-min PRD benchmark</div>
             </div>
 
             <div className="pro-card" style={{ padding: '18px' }}>
               <div style={{ fontSize: '0.78rem', color: isHoneybee ? '#71717a' : '#94a3b8', marginBottom: '6px' }}>Total Rescues</div>
-              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: isHoneybee ? '#000000' : '#ffffff' }}>38</div>
-              <div style={{ fontSize: '0.72rem', color: isHoneybee ? '#52525b' : '#64748b', marginTop: '4px' }}>100% resolution success</div>
+              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: isHoneybee ? '#000000' : '#ffffff' }}>
+                {myHelperProfile?.completedRescues || 0}
+              </div>
+              <div style={{ fontSize: '0.72rem', color: isHoneybee ? '#52525b' : '#64748b', marginTop: '4px' }}>Verified rescue resolutions</div>
             </div>
 
             <div className="pro-card" style={{ padding: '18px' }}>
               <div style={{ fontSize: '0.78rem', color: isHoneybee ? '#71717a' : '#94a3b8', marginBottom: '6px' }}>Settled Earnings</div>
-              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: isHoneybee ? '#ca8a04' : '#fbbf24' }}>₹8,450</div>
+              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: isHoneybee ? '#ca8a04' : '#fbbf24' }}>
+                ₹{(myHelperProfile?.completedRescues || 0) * 249}
+              </div>
               <div style={{ fontSize: '0.72rem', color: isHoneybee ? '#52525b' : '#64748b', marginTop: '4px' }}>Direct UPI settlement</div>
             </div>
           </div>

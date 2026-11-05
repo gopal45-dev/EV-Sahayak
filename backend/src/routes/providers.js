@@ -1,8 +1,42 @@
 import express from 'express';
-import { initialProviders } from '../seed/mockDatabase.js';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const DATA_DIR = path.join(__dirname, '../../data');
+const PROVIDERS_FILE = path.join(DATA_DIR, 'providers.json');
+
+// Ensure data directory exists
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+let providers = [];
+
+// Load persistent helpers from disk if available
+try {
+  if (fs.existsSync(PROVIDERS_FILE)) {
+    const raw = fs.readFileSync(PROVIDERS_FILE, 'utf-8');
+    providers = JSON.parse(raw);
+  } else {
+    providers = []; // Zero demo data; clean production start
+    fs.writeFileSync(PROVIDERS_FILE, JSON.stringify(providers, null, 2), 'utf-8');
+  }
+} catch (e) {
+  providers = [];
+}
+
+const saveProvidersToDisk = () => {
+  try {
+    fs.writeFileSync(PROVIDERS_FILE, JSON.stringify(providers, null, 2), 'utf-8');
+  } catch (err) {
+    console.error('Failed writing providers to disk:', err.message);
+  }
+};
 
 const router = express.Router();
-let providers = [...initialProviders];
 
 // GET /api/providers - Discover helpers with battery swap vs portable charger filters
 router.get('/', (req, res) => {
@@ -97,6 +131,8 @@ router.post('/register', (req, res) => {
   };
 
   providers.push(newProvider);
+  saveProvidersToDisk();
+
   res.status(201).json({ 
     success: true, 
     message: 'Welcome to EV Sahayak network! Your helper profile is active.',
@@ -113,6 +149,7 @@ router.patch('/:id/availability', (req, res) => {
   }
 
   provider.availabilityStatus = availabilityStatus || (provider.availabilityStatus === 'AVAILABLE' ? 'OFFLINE' : 'AVAILABLE');
+  saveProvidersToDisk();
   res.json({ success: true, message: `Availability status set to ${provider.availabilityStatus}`, provider });
 });
 

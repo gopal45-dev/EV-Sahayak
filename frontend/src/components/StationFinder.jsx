@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Search, Navigation, AlertTriangle, CheckCircle, Clock, Zap, MapPin, 
-  Filter, Route, Star, Bike, ChevronRight, Compass, Sun, DollarSign, Leaf 
+  Filter, Route, Star, Bike, ChevronRight, Compass, Sun, DollarSign, Leaf,
+  Database, RefreshCw, Globe
 } from 'lucide-react';
 import InteractiveMap from './InteractiveMap';
 
@@ -13,6 +14,8 @@ export default function StationFinder({ stations = [], onReportStation, userVehi
   const [selectedOperator, setSelectedOperator] = useState('ALL');
   const [selectedStation, setSelectedStation] = useState(null);
   const [showReportModal, setShowReportModal] = useState(false);
+  const [isSyncingLiveDB, setIsSyncingLiveDB] = useState(false);
+  const [syncMessage, setSyncMessage] = useState('');
 
   // BESCOM Real-Time Dynamic Grid Tariff
   const [bescomTariff, setBescomTariff] = useState({
@@ -109,6 +112,31 @@ export default function StationFinder({ stations = [], onReportStation, userVehi
     alert('Thank you! Inaccuracy report submitted for administrative review.');
   };
 
+  const handleSyncLiveStations = async () => {
+    setIsSyncingLiveDB(true);
+    setSyncMessage('Fetching live verified EV charging stations from API...');
+    try {
+      const res = await fetch('http://localhost:5000/api/stations/fetch-live', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ radiusKm: 35, limit: 30 })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSyncMessage(`✓ Synced ${data.fetchedCount} live stations to Database (${data.totalInDb} stations stored). Reloading...`);
+        setTimeout(() => {
+          window.location.reload();
+        }, 1200);
+      } else {
+        setSyncMessage(`Sync failed: ${data.message}`);
+      }
+    } catch (e) {
+      setSyncMessage(`Sync error: ${e.message}`);
+    } finally {
+      setIsSyncingLiveDB(false);
+    }
+  };
+
   return (
     <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '32px 24px' }}>
       {/* Top Banner with Navigation & Route Mode Toggle */}
@@ -139,8 +167,19 @@ export default function StationFinder({ stations = [], onReportStation, userVehi
           </div>
         </div>
 
-        {/* View Mode Switcher: Area Search vs Route Corridor */}
-        <div style={{ display: 'flex', gap: '8px' }}>
+        {/* View Mode Switcher: Area Search vs Route Corridor & API DB Sync */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <button
+            onClick={handleSyncLiveStations}
+            disabled={isSyncingLiveDB}
+            className="btn-primary"
+            style={{ padding: '6px 14px', fontSize: '0.8rem' }}
+            title="Fetch real EV stations via API and store in Database"
+          >
+            <RefreshCw size={13} className={isSyncingLiveDB ? 'animate-spin' : ''} />
+            <span>{isSyncingLiveDB ? 'Fetching API...' : 'Sync Station DB'}</span>
+          </button>
+
           <button
             onClick={() => setActiveMode('browse')}
             className={activeMode === 'browse' ? 'btn-primary' : 'btn-secondary'}
@@ -159,6 +198,26 @@ export default function StationFinder({ stations = [], onReportStation, userVehi
           </button>
         </div>
       </div>
+
+      {syncMessage && (
+        <div style={{
+          background: '#fef08a',
+          border: '1.5px solid #000000',
+          borderRadius: '8px',
+          padding: '10px 16px',
+          fontSize: '0.82rem',
+          fontWeight: 700,
+          color: '#000000',
+          marginBottom: '16px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          boxShadow: '2px 2px 0px #000000'
+        }}>
+          <Database size={16} />
+          <span>{syncMessage}</span>
+        </div>
+      )}
 
       {/* BESCOM Real-Time Dynamic Grid Tariff & Solar Telemetry */}
       <div className="pro-card" style={{

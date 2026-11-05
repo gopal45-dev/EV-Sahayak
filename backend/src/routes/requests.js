@@ -3,37 +3,8 @@ import { providers } from './providers.js';
 
 const router = express.Router();
 
-// Initial active requests list for demonstration and testing
-let helpRequests = [
-  {
-    id: 'req_1081',
-    userName: 'Kavita Menon (Ather 450X)',
-    userPhone: '+91 98450 11223',
-    vehicle: { brand: 'Ather', modelName: '450X Gen 3', connectorType: 'ATHER_PROPRIETARY', batteryRemainingPercent: 6 },
-    requestedService: 'PORTABLE_CHARGER',
-    locationAddress: '100 Feet Rd, Indiranagar (Near Metro)',
-    distanceKm: 1.4,
-    proposedPrice: 249,
-    status: 'SEARCHING',
-    selectedProviderId: null,
-    assignedProviderName: null,
-    createdAt: new Date().toISOString()
-  },
-  {
-    id: 'req_1082',
-    userName: 'Anirudh S. (Hero Vida V1)',
-    userPhone: '+91 97412 88990',
-    vehicle: { brand: 'Hero Vida', modelName: 'V1 Pro', connectorType: 'VIDA_MODULAR', hasSwappableBattery: true, batteryRemainingPercent: 3 },
-    requestedService: 'BATTERY_SWAP',
-    locationAddress: 'Old Airport Road, Domlur Flyover',
-    distanceKm: 3.2,
-    proposedPrice: 199,
-    status: 'SEARCHING',
-    selectedProviderId: null,
-    assignedProviderName: null,
-    createdAt: new Date().toISOString()
-  }
-];
+// Active help requests list (starts empty; populated dynamically by riders)
+let helpRequests = [];
 
 // Haversine formula to calculate distance in km between two GPS coordinates
 function calculateDistanceKm(lat1, lon1, lat2, lon2) {

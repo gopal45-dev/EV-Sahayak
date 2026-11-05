@@ -10,7 +10,7 @@ import HelperPortal from './components/HelperPortal';
 import ProfilePage from './components/ProfilePage';
 import CommandPalette from './components/CommandPalette';
 import ThreeBackground from './components/ThreeBackground';
-import { initialStations, initialProviders } from '../../backend/src/seed/mockDatabase.js';
+import { initialStations } from '../../backend/src/seed/mockDatabase.js';
 
 const SESSION_STORAGE_KEY = 'ev_sahayak_user_session';
 const SESSION_EXPIRY_DAYS = 7;
@@ -111,7 +111,7 @@ export default function App() {
     return getStoredTab(user);
   });
   const [stations, setStations] = useState(initialStations);
-  const [helpers, setHelpers] = useState(initialProviders);
+  const [helpers, setHelpers] = useState([]);
   const [vehicles, setVehicles] = useState(() => getStoredVehicles());
   const [backendConnected, setBackendConnected] = useState(false);
 

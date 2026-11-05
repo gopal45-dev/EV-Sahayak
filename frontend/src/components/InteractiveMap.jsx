@@ -1,35 +1,66 @@
 import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 export default function InteractiveMap({ stations = [], helpers = [], selectedItem = null, onItemSelect }) {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const markersRef = useRef([]);
 
+  // 1. Initialize Map Instance Once on Mount & Cleanly Destroy on Unmount
   useEffect(() => {
     if (!mapRef.current) return;
 
-    // Centered around Bengaluru
-    const defaultCenter = [12.9716, 77.5946];
-
-    if (!mapInstance.current) {
-      mapInstance.current = L.map(mapRef.current, {
-        center: defaultCenter,
-        zoom: 12,
-        zoomControl: true
-      });
-
-      // CartoDB Dark Matter / Voyager OpenStreetMap tiles for slick dark theme
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: 'abcd',
-        maxZoom: 19
-      }).addTo(mapInstance.current);
+    // Prevent "Map container is already initialized"
+    if (mapRef.current._leaflet_id) {
+      mapRef.current._leaflet_id = null;
     }
 
-    const map = mapInstance.current;
+    const defaultCenter = [12.9716, 77.5946]; // Bengaluru Central
 
-    // Clear old markers
+    const map = L.map(mapRef.current, {
+      center: defaultCenter,
+      zoom: 12,
+      zoomControl: true,
+      fadeAnimation: true
+    });
+
+    mapInstance.current = map;
+
+    // OpenStreetMap high-availability tile layer (no key required, 100% reliable)
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19
+    }).addTo(map);
+
+    // Invalidate size to guarantee tiles render at full container bounds
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 150);
+
+    // Responsive resize observer
+    let resizeObserver = null;
+    if (typeof ResizeObserver !== 'undefined' && mapRef.current) {
+      resizeObserver = new ResizeObserver(() => {
+        map.invalidateSize();
+      });
+      resizeObserver.observe(mapRef.current);
+    }
+
+    return () => {
+      clearTimeout(timer);
+      if (resizeObserver) resizeObserver.disconnect();
+      map.remove();
+      mapInstance.current = null;
+    };
+  }, []);
+
+  // 2. Synchronize Stations, Helpers & Selection Markers
+  useEffect(() => {
+    const map = mapInstance.current;
+    if (!map) return;
+
+    // Clear previous markers
     markersRef.current.forEach(m => map.removeLayer(m));
     markersRef.current = [];
 
@@ -38,25 +69,25 @@ export default function InteractiveMap({ stations = [], helpers = [], selectedIt
       if (!s.location?.coordinates) return;
       const [lng, lat] = s.location.coordinates;
 
-      const isAther = s.operator.toLowerCase().includes('ather');
-      const isTata = s.operator.toLowerCase().includes('tata');
-      const isSwap = s.operator.toLowerCase().includes('bounce') || s.operator.toLowerCase().includes('sun');
+      const isAther = s.operator?.toLowerCase().includes('ather');
+      const isTata = s.operator?.toLowerCase().includes('tata');
+      const isSwap = s.operator?.toLowerCase().includes('bounce') || s.operator?.toLowerCase().includes('sun');
 
-      let iconColor = '#10b981'; // Green
+      let iconBg = '#10b981'; // Green for public verified chargers
       let label = '⚡';
       if (isSwap) {
-        iconColor = '#eab308'; // Amber
+        iconBg = '#eab308'; // Amber for battery swap
         label = '🔄';
       } else if (isAther) {
-        iconColor = '#facc15'; // Honeybee Yellow
+        iconBg = '#facc15'; // Honeybee Yellow for Ather Grid
       }
 
       const customIcon = L.divIcon({
         className: 'custom-div-icon',
         html: `
           <div style="
-            background: ${iconColor};
-            color: white;
+            background: ${iconBg};
+            color: #000000;
             width: 32px;
             height: 32px;
             border-radius: 50%;
@@ -64,10 +95,11 @@ export default function InteractiveMap({ stations = [], helpers = [], selectedIt
             align-items: center;
             justify-content: center;
             font-size: 14px;
-            font-weight: bold;
-            border: 2px solid #ffffff;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            font-weight: 900;
+            border: 2px solid #000000;
+            box-shadow: 2px 2px 0px #000000;
             cursor: pointer;
+            transition: transform 0.15s ease;
           ">${label}</div>
         `,
         iconSize: [32, 32],
@@ -75,12 +107,18 @@ export default function InteractiveMap({ stations = [], helpers = [], selectedIt
       });
 
       const marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
+
       marker.bindPopup(`
-        <div style="font-family: sans-serif; min-width: 180px;">
-          <b style="font-size: 14px; color: #0f172a;">${s.name}</b>
-          <div style="font-size: 12px; color: #64748b; margin-top: 2px;">${s.operator}</div>
-          <div style="font-size: 12px; margin-top: 6px;">
-            <span style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px;">${s.verificationStatus}</span>
+        <div style="font-family: sans-serif; min-width: 190px; color: #000000;">
+          <b style="font-size: 13px; display: block; margin-bottom: 2px;">${s.name}</b>
+          <div style="font-size: 11px; color: #52525b; margin-bottom: 6px;">${s.operator} • ${s.city || 'Bengaluru'}</div>
+          <div style="font-size: 11px; display: flex; gap: 4px; flex-wrap: wrap;">
+            <span style="background: #fef08a; border: 1px solid #000000; padding: 2px 6px; border-radius: 4px; font-weight: 700;">
+              ${s.verificationStatus || 'VERIFIED'}
+            </span>
+            <span style="background: #f4f4f5; border: 1px solid #18181b; padding: 2px 6px; border-radius: 4px;">
+              ${s.connectors?.[0]?.connectorType?.replace(/_/g, ' ') || '15A AC'}
+            </span>
           </div>
         </div>
       `);
@@ -92,7 +130,7 @@ export default function InteractiveMap({ stations = [], helpers = [], selectedIt
       markersRef.current.push(marker);
     });
 
-    // Add Helper Markers (cyan/purple pulse)
+    // Add Helper Markers (if any online registered helpers)
     helpers.forEach(h => {
       if (!h.location?.coordinates) return;
       const [lng, lat] = h.location.coordinates;
@@ -103,8 +141,8 @@ export default function InteractiveMap({ stations = [], helpers = [], selectedIt
         className: 'custom-helper-icon',
         html: `
           <div style="
-            background: linear-gradient(135deg, #f43f5e, #a855f7);
-            color: white;
+            background: #facc15;
+            color: #000000;
             width: 36px;
             height: 36px;
             border-radius: 50%;
@@ -112,8 +150,8 @@ export default function InteractiveMap({ stations = [], helpers = [], selectedIt
             align-items: center;
             justify-content: center;
             font-size: 16px;
-            border: 2px solid #ffffff;
-            box-shadow: 0 0 15px rgba(244, 63, 94, 0.6);
+            border: 2px solid #000000;
+            box-shadow: 2px 2px 0px #000000;
             cursor: pointer;
             animation: bounce 1.5s infinite;
           ">🛵</div>
@@ -123,13 +161,14 @@ export default function InteractiveMap({ stations = [], helpers = [], selectedIt
       });
 
       const marker = L.marker([lat, lng], { icon: helperIcon }).addTo(map);
+
       marker.bindPopup(`
-        <div style="font-family: sans-serif; min-width: 180px;">
-          <b style="font-size: 14px; color: #0f172a;">${h.displayName}</b>
-          <div style="font-size: 11px; color: #10b981; font-weight: bold;">AVAILABLE NOW</div>
-          <div style="font-size: 12px; margin-top: 4px;">
-            ${hasBattery ? '🔋 Battery Swap Available' : ''}
-            ${hasCharger ? '<br/>🔌 Portable Fast Charger' : ''}
+        <div style="font-family: sans-serif; min-width: 180px; color: #000000;">
+          <b style="font-size: 13px;">${h.displayName}</b>
+          <div style="font-size: 11px; color: #15803d; font-weight: 700;">ONLINE HELPER</div>
+          <div style="font-size: 11px; margin-top: 4px; color: #52525b;">
+            ${hasBattery ? '🔋 Battery Swap Delivery' : ''}
+            ${hasCharger ? '<br/>🔌 Mobile Fast Charger' : ''}
           </div>
         </div>
       `);
@@ -141,7 +180,7 @@ export default function InteractiveMap({ stations = [], helpers = [], selectedIt
       markersRef.current.push(marker);
     });
 
-    // Pan to selected item if any
+    // Pan to selected station or helper
     if (selectedItem?.location?.coordinates) {
       const [lng, lat] = selectedItem.location.coordinates;
       map.setView([lat, lng], 14, { animate: true });
@@ -150,35 +189,47 @@ export default function InteractiveMap({ stations = [], helpers = [], selectedIt
   }, [stations, helpers, selectedItem]);
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: '380px' }}>
-      <div ref={mapRef} style={{ width: '100%', height: '100%', borderRadius: '16px' }} />
+    <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: '420px', flex: 1, display: 'flex' }}>
+      <div 
+        ref={mapRef} 
+        style={{ 
+          width: '100%', 
+          height: '100%', 
+          minHeight: '420px',
+          borderRadius: '12px',
+          border: '1.5px solid #18181b',
+          zIndex: 1
+        }} 
+      />
       {/* Legend Badge */}
       <div style={{
         position: 'absolute',
-        bottom: '12px',
-        left: '12px',
+        bottom: '14px',
+        left: '14px',
         zIndex: 1000,
-        background: 'rgba(15, 23, 42, 0.9)',
-        backdropFilter: 'blur(10px)',
+        background: '#ffffff',
         padding: '8px 12px',
-        borderRadius: '10px',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
-        fontSize: '0.75rem',
+        borderRadius: '8px',
+        border: '1.5px solid #000000',
+        fontSize: '0.72rem',
+        fontWeight: 700,
+        color: '#000000',
         display: 'flex',
         flexDirection: 'column',
-        gap: '4px'
+        gap: '4px',
+        boxShadow: '2px 2px 0px #000000'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#10b981' }}></span>
-          <span>Charging Station (Free Search)</span>
+          <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#10b981', border: '1px solid #000000' }}></span>
+          <span>Public Verified Charger</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#eab308' }}></span>
+          <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#eab308', border: '1px solid #000000' }}></span>
           <span>Battery Swap Station</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#f43f5e' }}></span>
-          <span>EV Sahayak Helper (Battery / Charger)</span>
+          <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#facc15', border: '1px solid #000000' }}></span>
+          <span>Ather Grid / Mobile Helper</span>
         </div>
       </div>
     </div>

@@ -194,37 +194,22 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
         setActiveRequest(data.request);
         if (data.request.candidateResponses?.length > 0) {
           setSelectedCandidate(data.request.candidateResponses[0]);
+        } else {
+          setSelectedCandidate(null);
         }
         setTimeLeftSeconds(15 * 60);
         setStep(2);
       }
     } catch (err) {
-      // Graceful fallback candidate with dynamic distance based on liveLocation
-      const fallbackReq = {
+      console.warn('Backend request dispatch error:', err.message);
+      // Empty request state when offline or no helpers available
+      const emptyReq = {
         id: `req_${Date.now()}`,
-        status: 'MATCHED_PENDING_UNLOCK',
-        candidateResponses: [
-          {
-            providerId: 'prov_1',
-            providerName: 'Ramesh Kumar (QuickEV Assist)',
-            maskedPhone: '+91 98451 XXXXX',
-            areaName: 'Indiranagar & Domlur',
-            distanceKm: 1.4,
-            rating: 4.9,
-            completedRescues: 47,
-            serviceOffered: assistanceMode,
-            serviceTitle: assistanceMode === 'BATTERY_SWAP' 
-              ? 'Charged Modular Battery Pack Delivery' 
-              : 'Mobile 3.3kW Portable Charger & Cable Rescue',
-            confirmedPrice: assistanceMode === 'BATTERY_SWAP' ? 199 : 249,
-            etaMinutes: 11,
-            confirmedAt: new Date().toISOString(),
-            expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString()
-          }
-        ]
+        status: 'SEARCHING_NO_HELPERS',
+        candidateResponses: []
       };
-      setActiveRequest(fallbackReq);
-      setSelectedCandidate(fallbackReq.candidateResponses[0]);
+      setActiveRequest(emptyReq);
+      setSelectedCandidate(null);
       setTimeLeftSeconds(15 * 60);
       setStep(2);
     } finally {
@@ -703,131 +688,176 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
             </span>
           </div>
 
-          {/* Candidate Card */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
-            {activeRequest.candidateResponses?.map(candidate => {
-              const isSelected = selectedCandidate?.providerId === candidate.providerId;
-
-              return (
-                <div
-                  key={candidate.providerId}
-                  onClick={() => setSelectedCandidate(candidate)}
-                  className="pro-card"
-                  style={{
-                    padding: '20px',
-                    borderColor: isSelected ? '#000000' : '#18181b',
-                    background: isSelected ? '#fef08a' : '#ffffff',
-                    cursor: 'pointer',
-                    boxShadow: isSelected ? '3px 3px 0px #000000' : 'none'
-                  }}
+          {/* Candidate Card or Empty Sector Notification */}
+          {(!activeRequest.candidateResponses || activeRequest.candidateResponses.length === 0) ? (
+            <div className="pro-card" style={{ padding: '36px 24px', textAlign: 'center', background: isHoneybee ? '#ffffff' : '#121215' }}>
+              <div style={{
+                width: '56px',
+                height: '56px',
+                borderRadius: '50%',
+                background: '#fef08a',
+                border: '1.5px solid #000000',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 16px',
+                boxShadow: '2px 2px 0px #000000'
+              }}>
+                <AlertCircle size={28} color="#000000" />
+              </div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: isHoneybee ? '#000000' : '#f4f4f5', marginBottom: '8px' }}>
+                No Active Helpers Online in this GPS Sector
+              </h3>
+              <p style={{ fontSize: '0.85rem', color: isHoneybee ? '#52525b' : '#a1a1aa', maxWidth: '480px', margin: '0 auto 20px', lineHeight: 1.6 }}>
+                There are currently no registered helpers online in your immediate sector for {assistanceMode === 'BATTERY_SWAP' ? 'Battery Swap' : 'Portable Fast Charging'}. New helpers register live through the Helper Portal.
+              </p>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="btn-secondary"
+                  style={{ padding: '10px 18px', fontSize: '0.85rem' }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-                    <div>
-                      <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: isHoneybee ? '#000000' : '#f4f4f5' }}>{candidate.providerName}</h3>
-                      <div style={{ fontSize: '0.78rem', color: isHoneybee ? '#52525b' : '#a1a1aa', fontWeight: 600 }}>
-                        {candidate.areaName} • ⭐ {candidate.rating} ({candidate.completedRescues} rescues)
-                      </div>
-                    </div>
-                    <span className="badge-clean badge-green">Ready Now</span>
-                  </div>
+                  Change Request Details
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onNavigateToCharging ? onNavigateToCharging() : setStep(1)}
+                  className="btn-primary"
+                  style={{ padding: '10px 18px', fontSize: '0.85rem' }}
+                >
+                  Locate Nearest Public Charging Station
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
+                {activeRequest.candidateResponses.map(candidate => {
+                  const isSelected = selectedCandidate?.providerId === candidate.providerId;
 
-                  <div style={{
-                    background: isSelected ? (isHoneybee ? '#ffffff' : '#1e293b') : (isHoneybee ? '#fafafa' : '#18181b'),
-                    border: isHoneybee ? '1.5px solid #18181b' : '1.5px solid #27272a',
-                    borderRadius: '8px',
-                    padding: '10px 12px',
-                    fontSize: '0.8rem',
-                    color: isHoneybee ? '#000000' : '#f4f4f5',
-                    marginBottom: '14px'
-                  }}>
-                    <div style={{ fontWeight: 800, color: isHoneybee ? '#000000' : '#f4f4f5' }}>{candidate.serviceTitle}</div>
-                    <div style={{ color: isHoneybee ? '#52525b' : '#a1a1aa', marginTop: '4px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
-                      <span>Estimated arrival: <b>~{candidate.etaMinutes} mins</b></span>
-                      {candidate.distanceKm && (
-                        <span style={{ color: '#15803d', fontWeight: 700 }}>
-                          • 📍 {candidate.distanceKm} km from your live GPS
+                  return (
+                    <div
+                      key={candidate.providerId}
+                      onClick={() => setSelectedCandidate(candidate)}
+                      className="pro-card"
+                      style={{
+                        padding: '20px',
+                        borderColor: isSelected ? '#000000' : '#18181b',
+                        background: isSelected ? '#fef08a' : (isHoneybee ? '#ffffff' : '#121215'),
+                        cursor: 'pointer',
+                        boxShadow: isSelected ? '3px 3px 0px #000000' : 'none'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                        <div>
+                          <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: isHoneybee ? '#000000' : '#f4f4f5' }}>{candidate.providerName}</h3>
+                          <div style={{ fontSize: '0.78rem', color: isHoneybee ? '#52525b' : '#a1a1aa', fontWeight: 600 }}>
+                            {candidate.areaName} • ⭐ {candidate.rating} ({candidate.completedRescues} rescues)
+                          </div>
+                        </div>
+                        <span className="badge-clean badge-green">Ready Now</span>
+                      </div>
+
+                      <div style={{
+                        background: isSelected ? (isHoneybee ? '#ffffff' : '#1e293b') : (isHoneybee ? '#fafafa' : '#18181b'),
+                        border: isHoneybee ? '1.5px solid #18181b' : '1.5px solid #27272a',
+                        borderRadius: '8px',
+                        padding: '10px 12px',
+                        fontSize: '0.8rem',
+                        color: isHoneybee ? '#000000' : '#f4f4f5',
+                        marginBottom: '14px'
+                      }}>
+                        <div style={{ fontWeight: 800, color: isHoneybee ? '#000000' : '#f4f4f5' }}>{candidate.serviceTitle}</div>
+                        <div style={{ color: isHoneybee ? '#52525b' : '#a1a1aa', marginTop: '4px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
+                          <span>Estimated arrival: <b>~{candidate.etaMinutes} mins</b></span>
+                          {candidate.distanceKm && (
+                            <span style={{ color: '#15803d', fontWeight: 700 }}>
+                              • 📍 {candidate.distanceKm} km from your live GPS
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Masked Contact Shield */}
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        fontSize: '0.78rem',
+                        color: '#854d0e',
+                        marginBottom: '14px',
+                        background: '#fef3c7',
+                        border: '1px solid #d97706',
+                        padding: '6px 10px',
+                        borderRadius: '6px'
+                      }}>
+                        <Lock size={13} color="#92400e" />
+                        <span>Contact: <b>{candidate.maskedPhone}</b> (Protected until unlock)</span>
+                      </div>
+
+                      {/* Pricing Breakdown */}
+                      <div style={{
+                        borderTop: isHoneybee ? '1.5px solid #18181b' : '1.5px solid #27272a',
+                        paddingTop: '12px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}>
+                        <div>
+                          <div style={{ fontSize: '0.7rem', color: isHoneybee ? '#71717a' : '#a1a1aa', fontWeight: 600 }}>Helper Service Charge</div>
+                          <div style={{ fontSize: '1.25rem', fontWeight: 900, color: isHoneybee ? '#000000' : '#f4f4f5' }}>
+                            ₹{candidate.confirmedPrice}
+                          </div>
+                        </div>
+                        <span style={{ fontSize: '0.75rem', color: isHoneybee ? '#52525b' : '#a1a1aa', fontWeight: 600 }}>
+                          Paid on-site directly to helper
                         </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Masked Contact Shield */}
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    fontSize: '0.78rem',
-                    color: '#854d0e',
-                    marginBottom: '14px',
-                    background: '#fef3c7',
-                    border: '1px solid #d97706',
-                    padding: '6px 10px',
-                    borderRadius: '6px'
-                  }}>
-                    <Lock size={13} color="#92400e" />
-                    <span>Contact: <b>{candidate.maskedPhone}</b> (Protected until unlock)</span>
-                  </div>
-
-                  {/* Pricing Breakdown */}
-                  <div style={{
-                    borderTop: isHoneybee ? '1.5px solid #18181b' : '1.5px solid #27272a',
-                    paddingTop: '12px',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}>
-                    <div>
-                      <div style={{ fontSize: '0.7rem', color: isHoneybee ? '#71717a' : '#a1a1aa', fontWeight: 600 }}>Helper Service Charge</div>
-                      <div style={{ fontSize: '1.25rem', fontWeight: 900, color: isHoneybee ? '#000000' : '#f4f4f5' }}>
-                        ₹{candidate.confirmedPrice}
                       </div>
                     </div>
-                    <span style={{ fontSize: '0.75rem', color: isHoneybee ? '#52525b' : '#a1a1aa', fontWeight: 600 }}>
-                      Paid on-site directly to helper
-                    </span>
+                  );
+                })}
+              </div>
+
+              {/* Payment Card with Razorpay Trigger */}
+              <div className="pro-card" style={{ padding: '24px', border: isHoneybee ? '2px solid #000000' : '2px solid #facc15', boxShadow: isHoneybee ? '4px 4px 0px #000000' : 'none' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '16px' }}>
+                  <div>
+                    <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: isHoneybee ? '#000000' : '#f4f4f5', marginBottom: '4px' }}>
+                      Unlock Sahayak Emergency Contact
+                    </h3>
+                    <p style={{ fontSize: '0.82rem', color: isHoneybee ? '#52525b' : '#a1a1aa' }}>
+                      Platform Emergency Pass fee unlocks direct calling, live location routing, and WhatsApp coordination.
+                    </p>
+                  </div>
+
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '0.72rem', color: isHoneybee ? '#71717a' : '#a1a1aa', fontWeight: 600 }}>Emergency Pass Fee</div>
+                    <div style={{ fontSize: '1.8rem', fontWeight: 900, color: isHoneybee ? '#000000' : '#facc15' }}>
+                      ₹19 <span style={{ fontSize: '0.8rem', color: isHoneybee ? '#52525b' : '#a1a1aa', fontWeight: 600 }}>one-time pass</span>
+                    </div>
                   </div>
                 </div>
-              );
-            })}
-          </div>
 
-          {/* Payment Card with Razorpay Trigger */}
-          <div className="pro-card" style={{ padding: '24px', border: isHoneybee ? '2px solid #000000' : '2px solid #facc15', boxShadow: isHoneybee ? '4px 4px 0px #000000' : 'none' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '16px' }}>
-              <div>
-                <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: isHoneybee ? '#000000' : '#f4f4f5', marginBottom: '4px' }}>
-                  Unlock Sahayak Emergency Contact
-                </h3>
-                <p style={{ fontSize: '0.82rem', color: isHoneybee ? '#52525b' : '#a1a1aa' }}>
-                  Platform Emergency Pass fee unlocks direct calling, live location routing, and WhatsApp coordination.
-                </p>
-              </div>
-
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '0.72rem', color: isHoneybee ? '#71717a' : '#a1a1aa', fontWeight: 600 }}>Emergency Pass Fee</div>
-                <div style={{ fontSize: '1.8rem', fontWeight: 900, color: isHoneybee ? '#000000' : '#facc15' }}>
-                  ₹19 <span style={{ fontSize: '0.8rem', color: isHoneybee ? '#52525b' : '#a1a1aa', fontWeight: 600 }}>one-time pass</span>
+                <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                  <button
+                    onClick={() => setStep(1)}
+                    className="btn-secondary"
+                  >
+                    Change Details
+                  </button>
+                  <button
+                    onClick={() => setShowRazorpay(true)}
+                    className="btn-primary"
+                    style={{ padding: '11px 22px' }}
+                  >
+                    <Lock size={16} />
+                    <span>Pay ₹19 via Razorpay to Unlock</span>
+                  </button>
                 </div>
               </div>
-            </div>
-
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-              <button
-                onClick={() => setStep(1)}
-                className="btn-secondary"
-              >
-                Change Details
-              </button>
-              <button
-                onClick={() => setShowRazorpay(true)}
-                className="btn-primary"
-                style={{ padding: '11px 22px' }}
-              >
-                <Lock size={16} />
-                <span>Pay ₹19 via Razorpay to Unlock</span>
-              </button>
-            </div>
-          </div>
+            </>
+          )}
         </div>
       )}
 
