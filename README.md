@@ -3,13 +3,18 @@
 > **On-Demand Electric Vehicle Roadside Rescue, Verified Public Charging Discovery & Smart Grid Marketplace**  
 > *Initial Pilot: Bengaluru Urban & Peripheral EV Corridors (Electric 2-Wheelers & 4-Wheelers)*
 
+[![Live Web App](https://img.shields.io/badge/Live_App-ev--sahayak.vercel.app-facc15?style=flat&logo=vercel&logoColor=black)](https://ev-sahayak.vercel.app/)
+[![Production API](https://img.shields.io/badge/Live_API-Render-00d293?style=flat&logo=render&logoColor=white)](https://ev-sahayak-backend.onrender.com/api/stations)
 [![React](https://img.shields.io/badge/Frontend-React_19_+_Vite-61DAFB?logo=react&logoColor=black)](https://react.dev/)
 [![Three.js](https://img.shields.io/badge/Graphics-Three.js_WebGL-000000?logo=three.js&logoColor=white)](https://threejs.org/)
 [![Node.js](https://img.shields.io/badge/Backend-Node.js_Express-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![MongoDB](https://img.shields.io/badge/Database-MongoDB_Geospatial-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-EV Sahayak is engineered to eliminate range anxiety and unexpected roadside breakdowns for electric two-wheeler riders in Bengaluru. By combining real-time public charging infrastructure discovery with a peer-to-peer roadside rescue marketplace, EV riders are never left stranded.
+🌐 **Live Application:** [https://ev-sahayak.vercel.app/](https://ev-sahayak.vercel.app/)  
+🚀 **Production API:** [https://ev-sahayak-backend.onrender.com/](https://ev-sahayak-backend.onrender.com/)
+
+EV Sahayak is engineered to eliminate range anxiety and unexpected roadside breakdowns for electric vehicle riders in Bengaluru. By combining real-time public charging infrastructure discovery across 43+ verified hubs with a peer-to-peer roadside rescue marketplace, EV riders are never left stranded.
 
 ---
 

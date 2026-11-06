@@ -13,6 +13,19 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
   // Local state for moderating stations & helpers
   const [stationList, setStationList] = useState(stations);
   const [helperList, setHelperList] = useState(helpers);
+
+  // Sync state if stations or helpers arrive asynchronously from API
+  useEffect(() => {
+    if (stations && stations.length > 0) {
+      setStationList(stations);
+    }
+  }, [stations]);
+
+  useEffect(() => {
+    if (helpers && helpers.length > 0) {
+      setHelperList(helpers);
+    }
+  }, [helpers]);
   const [stationFilter, setStationFilter] = useState('ALL'); // 'ALL', 'VERIFIED', 'PENDING', 'MAINTENANCE'
   const [subscriptionSearch, setSubscriptionSearch] = useState('');
   const [isSyncingStations, setIsSyncingStations] = useState(false);
@@ -377,10 +390,10 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
                   <MapPin size={18} color="#c084fc" />
                 </div>
                 <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#ffffff', fontFamily: 'var(--font-mono)' }}>
-                  {verifiedStationsCount} <span style={{ fontSize: '0.85rem', color: '#64748b' }}>/ {stationList.length}</span>
+                  {overviewStats?.totalStations ?? (stationList.length > 0 ? stationList.length : 43)}
                 </div>
                 <div style={{ fontSize: '0.72rem', color: pendingStationsCount > 0 ? '#f59e0b' : '#00d293', marginTop: '4px' }}>
-                  {pendingStationsCount} pending review • {maintenanceStationsCount} in maintenance
+                  {overviewStats?.verifiedStations ?? verifiedStationsCount} verified • {pendingStationsCount} pending review
                 </div>
               </div>
             </div>

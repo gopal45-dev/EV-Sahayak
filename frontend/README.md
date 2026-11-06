@@ -1,16 +1,29 @@
-# React + Vite
+# ⚡ EV Sahayak - Frontend Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Modern, responsive Web application for the **EV Sahayak** platform. Built with React 19, Vite, Three.js WebGL graphics, and Leaflet interactive maps.
 
-Currently, two official plugins are available:
+## 🚀 Key Modules
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Interactive Charging Directory (`InteractiveMap.jsx`, `StationFinder.jsx`)**: 43+ verified public EV charging stations across Bengaluru with connector filtering, live occupancy, and 1-click turn-by-turn Google Maps navigation.
+- **Emergency Roadside Rescue (`EmergencyModal.jsx`, `ActiveRequestCard.jsx`)**: Instant SOS dispatch with live GPS broadcast, atomic single-helper acceptance, and simulated dispatch telemetry.
+- **Battery Health Diagnostics (`BatteryDiagnostic.jsx`)**: Indian EV DTC trouble-code decoder, battery degradation calculation, and safe commute radius predictor.
+- **Admin Command Center (`AdminWorkspace.jsx`)**: Full administrative moderation portal with live station KPIs, helper oversight, and subscription revenue monitoring.
+- **Interactive 3D Powertrain (`ThreeVisualizer.jsx`)**: Real-time 3D WebGL visualization of an electric vehicle core powertrain rendered with Three.js.
+- **Zero-Latency Tri-Lingual Support (`translations.js`)**: Instant client-side localization across English, Kannada (ಕನ್ನಡ), and Hindi (हिन्दी).
 
-## React Compiler
+## 🛠️ Development
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+# Install dependencies
+npm install
 
-## Expanding the Oxlint configuration
+# Start local dev server
+npm run dev
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+# Build production bundle
+npm run build
+```
+
+## 🌐 Production Deployment
+
+Deployed on [Vercel](https://ev-sahayak.vercel.app/).
