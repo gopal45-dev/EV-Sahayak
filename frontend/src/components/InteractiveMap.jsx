@@ -108,18 +108,40 @@ export default function InteractiveMap({ stations = [], helpers = [], selectedIt
 
       const marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
 
+      const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+
       marker.bindPopup(`
-        <div style="font-family: sans-serif; min-width: 190px; color: #000000;">
+        <div style="font-family: sans-serif; min-width: 210px; color: #000000; padding: 2px;">
           <b style="font-size: 13px; display: block; margin-bottom: 2px;">${s.name}</b>
           <div style="font-size: 11px; color: #52525b; margin-bottom: 6px;">${s.operator} • ${s.city || 'Bengaluru'}</div>
-          <div style="font-size: 11px; display: flex; gap: 4px; flex-wrap: wrap;">
-            <span style="background: #fef08a; border: 1px solid #000000; padding: 2px 6px; border-radius: 4px; font-weight: 700;">
+          <div style="font-size: 11px; display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px;">
+            <span style="background: #fef08a; border: 1.5px solid #000000; padding: 2px 6px; border-radius: 4px; font-weight: 700;">
               ${s.verificationStatus || 'VERIFIED'}
             </span>
-            <span style="background: #f4f4f5; border: 1px solid #18181b; padding: 2px 6px; border-radius: 4px;">
+            <span style="background: #f4f4f5; border: 1.5px solid #18181b; padding: 2px 6px; border-radius: 4px;">
               ${s.connectors?.[0]?.connectorType?.replace(/_/g, ' ') || '15A AC'}
             </span>
           </div>
+          <a 
+            href="${mapsUrl}" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            style="
+              display: block;
+              text-align: center;
+              background: #facc15;
+              color: #000000;
+              text-decoration: none;
+              font-weight: 800;
+              font-size: 11px;
+              padding: 6px 10px;
+              border: 1.5px solid #000000;
+              border-radius: 6px;
+              box-shadow: 2px 2px 0px #000000;
+            "
+          >
+            🧭 Open in Google Maps
+          </a>
         </div>
       `);
 

@@ -96,10 +96,26 @@ export default function StationFinder({ stations = [], onReportStation, userVehi
     return matchesSearch && matchesConnector && matchesOperator && matchesCompatibility && matchesRoute;
   });
 
-  const handleOpenNav = (coords) => {
-    if (!coords) return;
-    const [lng, lat] = coords;
-    window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
+  const getGoogleMapsUrl = (station) => {
+    if (!station) return 'https://www.google.com/maps';
+    let lat, lng;
+    if (Array.isArray(station.location?.coordinates) && station.location.coordinates.length >= 2) {
+      lng = station.location.coordinates[0];
+      lat = station.location.coordinates[1];
+    } else if (Array.isArray(station.coordinates) && station.coordinates.length >= 2) {
+      lng = station.coordinates[0];
+      lat = station.coordinates[1];
+    } else if (station.lat && station.lng) {
+      lat = station.lat;
+      lng = station.lng;
+    }
+
+    if (lat && lng) {
+      return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+    }
+
+    const query = encodeURIComponent(`${station.name || ''} ${station.address || 'Bengaluru'}`.trim());
+    return `https://www.google.com/maps/search/?api=1&query=${query}`;
   };
 
   const submitReport = (e) => {
@@ -444,17 +460,24 @@ export default function StationFinder({ stations = [], onReportStation, userVehi
                       Verified: {new Date(station.lastVerifiedAt).toLocaleDateString()}
                     </span>
                     <div style={{ display: 'flex', gap: '6px' }}>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleOpenNav(station.location?.coordinates);
-                        }}
+                      <a
+                        href={getGoogleMapsUrl(station)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
                         className="btn-primary"
-                        style={{ padding: '6px 12px', fontSize: '0.78rem' }}
+                        style={{
+                          padding: '6px 12px',
+                          fontSize: '0.78rem',
+                          textDecoration: 'none',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}
                       >
                         <Navigation size={13} />
                         <span>Directions</span>
-                      </button>
+                      </a>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
