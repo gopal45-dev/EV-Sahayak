@@ -43,65 +43,21 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
     }
   };
 
-  // 1. Pro Subscriptions & Recurring Revenue State (Explicit User Requirement)
-  const [subscriptions, setSubscriptions] = useState([
-    {
-      id: 'sub_rzp_994101',
-      subscriberName: 'Gopal Gupta',
-      email: 'guptagopaldilipd@gmail.com',
-      phone: '+91 98451 22345',
-      planType: 'MONTHLY_PRO',
-      planName: 'EV Sahayak Pro Pass (Monthly)',
-      amount: 299,
-      gatewayRef: 'pay_rzp_sub_994101',
-      status: 'ACTIVE',
-      date: '01 Nov 2026, 10:00 AM',
-      expiryDate: '01 Dec 2026',
-      freeUnlocksUsed: 3
-    },
-    {
-      id: 'sub_rzp_883210',
-      subscriberName: 'Ananya Rao',
-      email: 'ananya.rao@bengaluru.in',
-      phone: '+91 98800 77123',
-      planType: 'MONTHLY_PRO',
-      planName: 'EV Sahayak Pro Pass (Monthly)',
-      amount: 299,
-      gatewayRef: 'pay_rzp_sub_883210',
-      status: 'ACTIVE',
-      date: '25 Oct 2026, 02:30 PM',
-      expiryDate: '25 Nov 2026',
-      freeUnlocksUsed: 6
-    },
-    {
-      id: 'sub_rzp_772109',
-      subscriberName: 'Vikram Sundaram',
-      email: 'vikram.s@ola-riders.org',
-      phone: '+91 97401 55678',
-      planType: 'ANNUAL_PRO',
-      planName: 'EV Sahayak Fleet Pass (Annual)',
-      amount: 2499,
-      gatewayRef: 'pay_rzp_sub_772109',
-      status: 'ACTIVE',
-      date: '15 Sep 2026, 09:15 AM',
-      expiryDate: '15 Sep 2027',
-      freeUnlocksUsed: 14
-    },
-    {
-      id: 'sub_rzp_661098',
-      subscriberName: 'Sneha Patel',
-      email: 'sneha.patel@ev.co.in',
-      phone: '+91 99160 44321',
-      planType: 'MONTHLY_PRO',
-      planName: 'EV Sahayak Pro Pass (Monthly)',
-      amount: 299,
-      gatewayRef: 'pay_rzp_sub_661098',
-      status: 'CANCELLED',
-      date: '01 Sep 2026, 11:20 AM',
-      expiryDate: '01 Oct 2026 (Expired)',
-      freeUnlocksUsed: 1
-    }
-  ]);
+  // 1. Pro Subscriptions & Recurring Revenue State (real backend data)
+  const [subscriptions, setSubscriptions] = useState([]);
+
+  useEffect(() => {
+    const fetchSubscriptions = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/admin/subscriptions`);
+        const data = await res.json();
+        if (data.success && Array.isArray(data.subscriptions)) {
+          setSubscriptions(data.subscriptions);
+        }
+      } catch (e) {}
+    };
+    fetchSubscriptions();
+  }, []);
 
   // 2. Live SOS Emergency Missions Mission Control (dynamically populated from live requests)
   const [liveMissions, setLiveMissions] = useState([]);
@@ -121,43 +77,51 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
     return () => clearInterval(interval);
   }, []);
 
-  // 3. Moderation complaints & refund queue (P0: Complaint handling, Refund workflow)
-  const [complaintQueue, setComplaintQueue] = useState([
-    {
-      id: 'cmp_1001',
-      riderName: 'Vikram Sundaram',
-      providerName: 'Ramesh Kumar (QuickEV Assist)',
-      reason: 'PROVIDER_NO_SHOW',
-      details: 'Helper accepted but was delayed past 30 mins due to traffic.',
-      amount: '₹19.00',
-      status: 'PENDING_AUDIT',
-      timestamp: 'Today, 10:14 AM'
-    },
-    {
-      id: 'cmp_1002',
-      riderName: 'Sneha Patel',
-      providerName: 'Sun Mobility / Quick Swap',
-      reason: 'INCORRECT_EQUIPMENT',
-      details: 'Battery pack variant was incompatible with Ather 450X fixed chassis.',
-      amount: '₹19.00',
-      status: 'REFUND_APPROVED',
-      timestamp: 'Yesterday, 04:22 PM'
-    }
-  ]);
+  // 3. Moderation complaints & refund queue (real backend complaints)
+  const [complaintQueue, setComplaintQueue] = useState([]);
 
-  // Financial Calculations
+  useEffect(() => {
+    const fetchComplaints = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/admin/complaints`);
+        const data = await res.json();
+        if (data.success && Array.isArray(data.complaints)) {
+          setComplaintQueue(data.complaints);
+        }
+      } catch (e) {}
+    };
+    fetchComplaints();
+  }, []);
+
+  // 4. Real Backend Overview KPIs
+  const [overviewStats, setOverviewStats] = useState(null);
+
+  useEffect(() => {
+    const fetchOverview = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/admin/overview`);
+        const data = await res.json();
+        if (data.success && data.stats) {
+          setOverviewStats(data.stats);
+        }
+      } catch (e) {}
+    };
+    fetchOverview();
+    const interval = setInterval(fetchOverview, 6000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Real Financial Calculations from live database
   const activeSubs = subscriptions.filter(s => s.status === 'ACTIVE');
-  const mrrInr = activeSubs.reduce((acc, s) => acc + (s.planType === 'ANNUAL_PRO' ? Math.round(s.amount / 12) : s.amount), 0);
-  const totalSubRevenue = subscriptions.reduce((acc, s) => acc + s.amount, 0);
-  const contactUnlockRevenue = 38 * 19; // 38 unlocked passes
-  const helperAuditRevenue = helperList.length * 49; // ₹49 audit fee
-  const grossPlatformVolume = totalSubRevenue + contactUnlockRevenue + helperAuditRevenue;
+  const mrrInr = overviewStats?.monthlyRecurringRevenueInr ?? activeSubs.reduce((acc, s) => acc + (s.planType === 'ANNUAL_PRO' ? Math.round(s.amount / 12) : s.amount), 0);
+  const totalSubRevenue = overviewStats?.totalSubscriptionRevenueInr ?? subscriptions.reduce((acc, s) => acc + s.amount, 0);
+  const grossPlatformVolume = overviewStats?.grossPlatformVolumeInr ?? (totalSubRevenue + ((overviewStats?.completedUnlocks || 0) * 19));
 
   // Station counts
-  const verifiedStationsCount = stationList.filter(s => s.verificationStatus === 'VERIFIED').length;
-  const pendingStationsCount = stationList.filter(s => s.verificationStatus === 'PENDING').length;
-  const maintenanceStationsCount = stationList.filter(s => s.verificationStatus === 'MAINTENANCE').length;
-  const activeHelpersCount = helperList.filter(h => h.availabilityStatus === 'AVAILABLE').length;
+  const verifiedStationsCount = overviewStats?.verifiedStations ?? stationList.filter(s => s.verificationStatus === 'VERIFIED').length;
+  const pendingStationsCount = overviewStats?.pendingCommunityStations ?? stationList.filter(s => s.verificationStatus === 'PENDING').length;
+  const maintenanceStationsCount = overviewStats?.maintenanceStations ?? stationList.filter(s => s.verificationStatus === 'MAINTENANCE').length;
+  const activeHelpersCount = overviewStats?.availableHelpers ?? helperList.filter(h => h.availabilityStatus === 'AVAILABLE').length;
 
   // Station Status Handlers
   const handleSetStationStatus = async (id, newStatus) => {
@@ -432,20 +396,26 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
                   </button>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {subscriptions.slice(0, 3).map(sub => (
-                    <div key={sub.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: isHoneybee ? '#fefce8' : '#090d16', padding: '10px 14px', borderRadius: '8px', border: isHoneybee ? '1.5px solid #18181b' : '1px solid #1e293b' }}>
-                      <div>
-                        <div style={{ fontSize: '0.84rem', fontWeight: 700, color: isHoneybee ? '#000000' : '#ffffff' }}>{sub.subscriberName}</div>
-                        <div style={{ fontSize: '0.72rem', color: isHoneybee ? '#52525b' : '#94a3b8' }}>{sub.phone} • {sub.planName}</div>
-                      </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#15803d', fontFamily: 'var(--font-mono)' }}>₹{sub.amount}</div>
-                        <span className={`badge-clean ${sub.status === 'ACTIVE' ? 'badge-green' : 'badge-amber'}`} style={{ fontSize: '0.65rem' }}>
-                          {sub.status}
-                        </span>
-                      </div>
+                  {subscriptions.length === 0 ? (
+                    <div style={{ padding: '24px 12px', textAlign: 'center', color: isHoneybee ? '#71717a' : '#94a3b8', fontSize: '0.82rem' }}>
+                      No Pro Pass subscribers yet. Real-time billing transactions will appear here as users upgrade.
                     </div>
-                  ))}
+                  ) : (
+                    subscriptions.slice(0, 3).map(sub => (
+                      <div key={sub.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: isHoneybee ? '#fefce8' : '#090d16', padding: '10px 14px', borderRadius: '8px', border: isHoneybee ? '1.5px solid #18181b' : '1px solid #1e293b' }}>
+                        <div>
+                          <div style={{ fontSize: '0.84rem', fontWeight: 700, color: isHoneybee ? '#000000' : '#ffffff' }}>{sub.subscriberName}</div>
+                          <div style={{ fontSize: '0.72rem', color: isHoneybee ? '#52525b' : '#94a3b8' }}>{sub.phone} • {sub.planName}</div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#15803d', fontFamily: 'var(--font-mono)' }}>₹{sub.amount}</div>
+                          <span className={`badge-clean ${sub.status === 'ACTIVE' ? 'badge-green' : 'badge-amber'}`} style={{ fontSize: '0.65rem' }}>
+                            {sub.status}
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
 
@@ -458,20 +428,26 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
                   </button>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {liveMissions.map(m => (
-                    <div key={m.id} style={{ background: isHoneybee ? '#fefce8' : '#090d16', padding: '12px 14px', borderRadius: '8px', border: isHoneybee ? '1.5px solid #18181b' : '1px solid #1e293b' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                        <span style={{ fontSize: '0.84rem', fontWeight: 700, color: isHoneybee ? '#000000' : '#ffffff' }}>{m.riderName} ({m.vehicle})</span>
-                        <span className="badge-clean badge-amber" style={{ fontSize: '0.65rem' }}>{m.status}</span>
-                      </div>
-                      <div style={{ fontSize: '0.75rem', color: isHoneybee ? '#52525b' : '#94a3b8' }}>
-                        📍 {m.location} • Rescuer: <b>{m.assignedHelper}</b>
-                      </div>
-                      <div style={{ fontSize: '0.72rem', color: '#15803d', marginTop: '4px' }}>
-                        Live ETA: ~{m.etaMinutes} mins ({m.distanceKm} km away)
-                      </div>
+                  {liveMissions.length === 0 ? (
+                    <div style={{ padding: '24px 12px', textAlign: 'center', color: isHoneybee ? '#71717a' : '#94a3b8', fontSize: '0.82rem' }}>
+                      All sectors clear. Active roadside emergency rescues in Bengaluru will be triaged here.
                     </div>
-                  ))}
+                  ) : (
+                    liveMissions.map(m => (
+                      <div key={m.id} style={{ background: isHoneybee ? '#fefce8' : '#090d16', padding: '12px 14px', borderRadius: '8px', border: isHoneybee ? '1.5px solid #18181b' : '1px solid #1e293b' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                          <span style={{ fontSize: '0.84rem', fontWeight: 700, color: isHoneybee ? '#000000' : '#ffffff' }}>{m.riderName} ({m.vehicle})</span>
+                          <span className="badge-clean badge-amber" style={{ fontSize: '0.65rem' }}>{m.status}</span>
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: isHoneybee ? '#52525b' : '#94a3b8' }}>
+                          📍 {m.location} • Rescuer: <b>{m.assignedHelper}</b>
+                        </div>
+                        <div style={{ fontSize: '0.72rem', color: '#15803d', marginTop: '4px' }}>
+                          Live ETA: ~{m.etaMinutes} mins ({m.distanceKm} km away)
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </div>
@@ -492,43 +468,55 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '16px' }}>
-              {liveMissions.map(mission => (
-                <div key={mission.id} className="pro-card" style={{ padding: '20px', border: '1.5px solid #18181b' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span className="radar-pulse" style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#00d293' }} />
-                        <h4 style={{ fontSize: '1.05rem', color: isHoneybee ? '#000000' : '#ffffff', fontWeight: 800 }}>{mission.riderName}</h4>
-                      </div>
-                      <span style={{ fontSize: '0.75rem', color: isHoneybee ? '#52525b' : '#94a3b8' }}>{mission.riderPhone} • {mission.vehicle}</span>
-                    </div>
-                    <span className="badge-clean badge-yellow">{mission.status}</span>
-                  </div>
-
-                  <div style={{ background: isHoneybee ? '#fefce8' : '#090d16', padding: '12px', borderRadius: '8px', border: isHoneybee ? '1.5px solid #18181b' : '1px solid #1e293b', marginBottom: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <div style={{ fontSize: '0.78rem', color: isHoneybee ? '#18181b' : '#cbd5e1' }}>
-                      Breakdown Pin: <b>{mission.location}</b>
-                    </div>
-                    <div style={{ fontSize: '0.78rem', color: isHoneybee ? '#854d0e' : '#facc15', fontWeight: 700 }}>
-                      Service Required: <b>{mission.serviceType.replace('_', ' ')}</b>
-                    </div>
-                    <div style={{ fontSize: '0.78rem', color: isHoneybee ? '#52525b' : '#94a3b8' }}>
-                      Assigned Rescuer: <b>{mission.assignedHelper}</b>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.78rem', color: '#15803d', fontWeight: 600 }}>
-                    <span>ETA: ~{mission.etaMinutes} mins ({mission.distanceKm} km remaining)</span>
-                    <button
-                      onClick={() => alert(`Radio ping dispatched to ${mission.assignedHelper}. Telemetry verified.`)}
-                      className="btn-secondary"
-                      style={{ padding: '4px 10px', fontSize: '0.72rem' }}
-                    >
-                      Ping Rescuer
-                    </button>
-                  </div>
+              {liveMissions.length === 0 ? (
+                <div className="pro-card" style={{ padding: '40px 20px', textAlign: 'center', gridColumn: '1 / -1' }}>
+                  <Navigation size={32} color="#ca8a04" style={{ margin: '0 auto 10px' }} />
+                  <h4 style={{ fontSize: '1.05rem', fontWeight: 800, color: isHoneybee ? '#000000' : '#ffffff', marginBottom: '6px' }}>
+                    All Sectors Clear • No Active Roadside Missions
+                  </h4>
+                  <p style={{ fontSize: '0.82rem', color: isHoneybee ? '#52525b' : '#94a3b8', maxWidth: '420px', margin: '0 auto' }}>
+                    When a stranded EV rider dispatches a rescue and an online helper accepts, live telemetry, distance, and ETA will appear here in real time.
+                  </p>
                 </div>
-              ))}
+              ) : (
+                liveMissions.map(mission => (
+                  <div key={mission.id} className="pro-card" style={{ padding: '20px', border: '1.5px solid #18181b' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span className="radar-pulse" style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#00d293' }} />
+                          <h4 style={{ fontSize: '1.05rem', color: isHoneybee ? '#000000' : '#ffffff', fontWeight: 800 }}>{mission.riderName}</h4>
+                        </div>
+                        <span style={{ fontSize: '0.75rem', color: isHoneybee ? '#52525b' : '#94a3b8' }}>{mission.riderPhone} • {mission.vehicle}</span>
+                      </div>
+                      <span className="badge-clean badge-yellow">{mission.status}</span>
+                    </div>
+
+                    <div style={{ background: isHoneybee ? '#fefce8' : '#090d16', padding: '12px', borderRadius: '8px', border: isHoneybee ? '1.5px solid #18181b' : '1px solid #1e293b', marginBottom: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <div style={{ fontSize: '0.78rem', color: isHoneybee ? '#18181b' : '#cbd5e1' }}>
+                        Breakdown Pin: <b>{mission.location}</b>
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: isHoneybee ? '#854d0e' : '#facc15', fontWeight: 700 }}>
+                        Service Required: <b>{mission.serviceType.replace('_', ' ')}</b>
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: isHoneybee ? '#52525b' : '#94a3b8' }}>
+                        Assigned Rescuer: <b>{mission.assignedHelper}</b>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.78rem', color: '#15803d', fontWeight: 600 }}>
+                      <span>ETA: ~{mission.etaMinutes} mins ({mission.distanceKm} km remaining)</span>
+                      <button
+                        onClick={() => alert(`Radio ping dispatched to ${mission.assignedHelper}. Telemetry verified.`)}
+                        className="btn-secondary"
+                        style={{ padding: '4px 10px', fontSize: '0.72rem' }}
+                      >
+                        Ping Rescuer
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         )}
@@ -576,45 +564,53 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredSubscriptions.map(sub => (
-                      <tr key={sub.id} style={{ borderBottom: isHoneybee ? '1.5px solid #e4e4e7' : '1px solid #1e293b' }}>
-                        <td style={{ padding: '14px 18px' }}>
-                          <div style={{ fontWeight: 700, color: isHoneybee ? '#000000' : '#ffffff' }}>{sub.subscriberName}</div>
-                          <div style={{ fontSize: '0.72rem', color: isHoneybee ? '#52525b' : '#94a3b8' }}>{sub.email} • {sub.phone}</div>
-                        </td>
-                        <td style={{ padding: '14px 18px' }}>
-                          <span style={{ color: '#facc15', fontWeight: 700 }}>{sub.planName}</span>
-                          <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Expires: {sub.expiryDate}</div>
-                        </td>
-                        <td style={{ padding: '14px 18px', fontFamily: 'var(--font-mono)', fontWeight: 800, color: '#00d293' }}>
-                          ₹{sub.amount}
-                        </td>
-                        <td style={{ padding: '14px 18px', fontFamily: 'var(--font-mono)', color: '#94a3b8' }}>
-                          <code>{sub.gatewayRef}</code>
-                        </td>
-                        <td style={{ padding: '14px 18px', color: '#cbd5e1' }}>
-                          {sub.date}
-                        </td>
-                        <td style={{ padding: '14px 18px' }}>
-                          <span className={`badge-clean ${sub.status === 'ACTIVE' ? 'badge-green' : 'badge-amber'}`}>
-                            {sub.status}
-                          </span>
-                        </td>
-                        <td style={{ padding: '14px 18px', textAlign: 'right' }}>
-                          {sub.status === 'ACTIVE' ? (
-                            <button
-                              onClick={() => handleCancelSubscription(sub.id)}
-                              className="btn-secondary"
-                              style={{ padding: '4px 10px', fontSize: '0.72rem', color: '#dc2626' }}
-                            >
-                              Cancel Pass
-                            </button>
-                          ) : (
-                            <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Cancelled</span>
-                          )}
+                    {filteredSubscriptions.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} style={{ padding: '36px', textAlign: 'center', color: isHoneybee ? '#71717a' : '#94a3b8', fontSize: '0.85rem' }}>
+                          No Pro Pass subscription records yet. Subscribed members will appear here automatically.
                         </td>
                       </tr>
-                    ))}
+                    ) : (
+                      filteredSubscriptions.map(sub => (
+                        <tr key={sub.id} style={{ borderBottom: isHoneybee ? '1.5px solid #e4e4e7' : '1px solid #1e293b' }}>
+                          <td style={{ padding: '14px 18px' }}>
+                            <div style={{ fontWeight: 700, color: isHoneybee ? '#000000' : '#ffffff' }}>{sub.subscriberName}</div>
+                            <div style={{ fontSize: '0.72rem', color: isHoneybee ? '#52525b' : '#94a3b8' }}>{sub.email} • {sub.phone}</div>
+                          </td>
+                          <td style={{ padding: '14px 18px' }}>
+                            <span style={{ color: '#facc15', fontWeight: 700 }}>{sub.planName}</span>
+                            <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Expires: {sub.expiryDate}</div>
+                          </td>
+                          <td style={{ padding: '14px 18px', fontFamily: 'var(--font-mono)', fontWeight: 800, color: '#00d293' }}>
+                            ₹{sub.amount}
+                          </td>
+                          <td style={{ padding: '14px 18px', fontFamily: 'var(--font-mono)', color: '#94a3b8' }}>
+                            <code>{sub.gatewayRef}</code>
+                          </td>
+                          <td style={{ padding: '14px 18px', color: '#cbd5e1' }}>
+                            {sub.date || (sub.startDate ? new Date(sub.startDate).toLocaleDateString() : 'Active')}
+                          </td>
+                          <td style={{ padding: '14px 18px' }}>
+                            <span className={`badge-clean ${sub.status === 'ACTIVE' ? 'badge-green' : 'badge-amber'}`}>
+                              {sub.status}
+                            </span>
+                          </td>
+                          <td style={{ padding: '14px 18px', textAlign: 'right' }}>
+                            {sub.status === 'ACTIVE' ? (
+                              <button
+                                onClick={() => handleCancelSubscription(sub.id)}
+                                className="btn-secondary"
+                                style={{ padding: '4px 10px', fontSize: '0.72rem', color: '#dc2626' }}
+                              >
+                                Cancel Pass
+                              </button>
+                            ) : (
+                              <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Cancelled</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -689,7 +685,17 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
             )}
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
-              {filteredStations.map(st => (
+              {filteredStations.length === 0 ? (
+                <div className="pro-card" style={{ padding: '36px 20px', textAlign: 'center', gridColumn: '1 / -1' }}>
+                  <MapPin size={32} color="#ca8a04" style={{ margin: '0 auto 10px' }} />
+                  <h4 style={{ fontSize: '1.05rem', fontWeight: 800, color: isHoneybee ? '#000000' : '#ffffff', marginBottom: '6px' }}>
+                    No Stations Found in "{stationFilter}"
+                  </h4>
+                  <p style={{ fontSize: '0.82rem', color: isHoneybee ? '#52525b' : '#94a3b8' }}>
+                    {stationFilter === 'PENDING' ? 'No community-submitted charging points are currently awaiting review.' : 'Select "ALL" or "VERIFIED" to inspect operational charging hubs.'}
+                  </p>
+                </div>
+              ) : filteredStations.map(st => (
                 <div key={st.id} className="pro-card" style={{ padding: '18px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                     <div>
@@ -757,7 +763,17 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
-              {helperList.map(hlp => (
+              {helperList.length === 0 ? (
+                <div className="pro-card" style={{ padding: '40px 20px', textAlign: 'center', gridColumn: '1 / -1' }}>
+                  <Users size={32} color="#ca8a04" style={{ margin: '0 auto 10px' }} />
+                  <h4 style={{ fontSize: '1.05rem', fontWeight: 800, color: isHoneybee ? '#000000' : '#ffffff', marginBottom: '6px' }}>
+                    No Registered Helpers in Network
+                  </h4>
+                  <p style={{ fontSize: '0.82rem', color: isHoneybee ? '#52525b' : '#94a3b8', maxWidth: '420px', margin: '0 auto' }}>
+                    When EV technicians and community volunteers register their portable chargers or swappable batteries, their profiles and audit badges will be managed here.
+                  </p>
+                </div>
+              ) : helperList.map(hlp => (
                 <div key={hlp.id} className="pro-card" style={{ padding: '18px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                     <div>
@@ -801,7 +817,17 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {complaintQueue.map(c => (
+              {complaintQueue.length === 0 ? (
+                <div className="pro-card" style={{ padding: '36px 20px', textAlign: 'center' }}>
+                  <CheckCircle size={32} color="#15803d" style={{ margin: '0 auto 10px' }} />
+                  <h4 style={{ fontSize: '1.05rem', fontWeight: 800, color: isHoneybee ? '#000000' : '#ffffff', marginBottom: '6px' }}>
+                    No Pending Disputes or Refunds
+                  </h4>
+                  <p style={{ fontSize: '0.82rem', color: isHoneybee ? '#52525b' : '#94a3b8', maxWidth: '420px', margin: '0 auto' }}>
+                    All rider assistance missions and payment unlocks are clear. Any refund requests or tickets filed will appear here for administrative audit.
+                  </p>
+                </div>
+              ) : complaintQueue.map(c => (
                 <div key={c.id} className="pro-card" style={{ padding: '18px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                     <div>

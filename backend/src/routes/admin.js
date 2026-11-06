@@ -7,22 +7,10 @@ import { contactUnlocks } from './unlock.js';
 const router = express.Router();
 
 // Real Pro Subscriptions Store (populated on user checkout or admin pass)
-let subscriptions = [
-  {
-    id: 'sub_rzp_994101',
-    subscriberName: 'Gopal Gupta',
-    email: 'guptagopaldilipd@gmail.com',
-    phone: '98451 22345',
-    planType: 'MONTHLY_PRO',
-    planName: 'EV Sahayak Pro Pass (Monthly)',
-    amount: 299,
-    gatewayRef: 'pay_rzp_sub_994101',
-    status: 'ACTIVE',
-    startDate: new Date().toISOString(),
-    expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-    freeUnlocksUsed: 0
-  }
-];
+let subscriptions = [];
+
+// Real Moderation complaints & refund queue (populated on user reports or dispute filings)
+let complaints = [];
 
 // Live SOS emergency missions (starts empty; populated when riders request rescues)
 let liveMissions = [];
@@ -97,6 +85,64 @@ router.get('/overview', async (req, res) => {
 // GET /api/admin/subscriptions - List all Pro subscription payments with subscriber history
 router.get('/subscriptions', (req, res) => {
   res.json({ success: true, subscriptions });
+});
+
+// POST /api/admin/subscriptions - Add a real Pro subscription when user subscribes
+router.post('/subscriptions', (req, res) => {
+  const { subscriberName, email, phone, planType, planName, amount, gatewayRef } = req.body;
+  const newSub = {
+    id: `sub_rzp_${Date.now()}`,
+    subscriberName: subscriberName || 'EV Rider',
+    email: email || '',
+    phone: phone || '',
+    planType: planType || 'MONTHLY_PRO',
+    planName: planName || 'EV Sahayak Pro Pass (Monthly)',
+    amount: Number(amount) || 299,
+    gatewayRef: gatewayRef || `pay_${Date.now()}`,
+    status: 'ACTIVE',
+    startDate: new Date().toISOString(),
+    expiryDate: new Date(Date.now() + (planType === 'ANNUAL_PRO' ? 365 : 30) * 24 * 60 * 60 * 1000).toISOString(),
+    freeUnlocksUsed: 0
+  };
+  subscriptions.unshift(newSub);
+  res.status(201).json({ success: true, subscription: newSub });
+});
+
+// GET /api/admin/complaints - List all user disputes & refund requests
+router.get('/complaints', (req, res) => {
+  res.json({ success: true, complaints });
+});
+
+// POST /api/admin/complaints - Submit a dispute / refund request
+router.post('/complaints', (req, res) => {
+  const { riderName, providerName, reason, details, amount } = req.body;
+  const newComplaint = {
+    id: `cmp_${Date.now()}`,
+    riderName: riderName || 'Rider',
+    providerName: providerName || 'Assigned Rescuer',
+    reason: reason || 'SERVICE_DISPUTE',
+    details: details || '',
+    amount: amount || '₹19.00',
+    status: 'PENDING_AUDIT',
+    timestamp: new Date().toLocaleString()
+  };
+  complaints.unshift(newComplaint);
+  res.status(201).json({ success: true, complaint: newComplaint });
+});
+
+// POST /api/admin/complaints/:id/process - Approve refund or dismiss complaint
+router.post('/complaints/:id/process', (req, res) => {
+  const { approve } = req.body;
+  const complaint = complaints.find(c => c.id === req.params.id);
+  if (!complaint) {
+    return res.status(404).json({ success: false, message: 'Complaint not found' });
+  }
+
+  complaint.status = approve ? 'REFUND_APPROVED' : 'REJECTED';
+  complaint.refundRef = approve ? `rfnd_rzp_${Date.now()}` : null;
+  complaint.processedAt = new Date().toISOString();
+
+  res.json({ success: true, message: approve ? 'Refund approved and credited.' : 'Complaint audited and dismissed.', complaint });
 });
 
 // POST /api/admin/subscriptions/cancel/:id - Cancel or refund a subscription
