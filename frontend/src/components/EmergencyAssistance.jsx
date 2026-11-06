@@ -50,7 +50,7 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
     const fetchTelemetry = async () => {
       try {
         const reqId = activeRequest?.id || 'live_rescue';
-        const res = await fetch(`/api/features/telemetry/${reqId}`);
+        const res = await fetch(`${API_BASE_URL}/api/features/telemetry/${reqId}`);
         const data = await res.json();
         if (data.success) {
           setLiveTelemetry({
@@ -239,7 +239,7 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
         setStep(3);
         if (onUnlockContact) onUnlockContact(data.entitlement);
         notifyRiderOfHelperEnRoute({
-          helperName: selectedCandidate?.providerName || 'Ramesh Kumar',
+          helperName: selectedCandidate?.providerName || 'EV Sahayak Helper',
           etaMinutes: selectedCandidate?.etaMinutes || 6,
           distanceKm: selectedCandidate?.distanceKm || 1.4
         });
@@ -251,7 +251,7 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
         unlockId: `unl_${Date.now()}`,
         passFeeInr: 19,
         gatewayRef: paymentDetails.paymentId,
-        providerName: selectedCandidate?.providerName || 'Ramesh Kumar',
+        providerName: selectedCandidate?.providerName || 'EV Sahayak Helper',
         revealedPhone: '+91 98451 23890',
         serviceFeePayableToHelper: selectedCandidate?.confirmedPrice || 249,
         unlockedAt: new Date().toISOString()
@@ -259,7 +259,7 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
       setUnlockedEntitlement(fallbackEntitlement);
       setStep(3);
       notifyRiderOfHelperEnRoute({
-        helperName: selectedCandidate?.providerName || 'Ramesh Kumar',
+        helperName: selectedCandidate?.providerName || 'EV Sahayak Helper',
         etaMinutes: selectedCandidate?.etaMinutes || 6,
         distanceKm: selectedCandidate?.distanceKm || 1.4
       });

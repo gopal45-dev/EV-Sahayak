@@ -18,3 +18,8 @@ build/
 Thumbs.db
 .vscode/
 .idea/
+
+# Local credentials & secrets
+*admin*login*
+admin_login.*
+admin login.*

@@ -103,35 +103,23 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
     }
   ]);
 
-  // 2. Live SOS Emergency Missions Mission Control
-  const [liveMissions, setLiveMissions] = useState([
-    {
-      id: 'mission_201',
-      riderName: 'Kavita Menon',
-      riderPhone: '+91 98450 11223',
-      vehicle: 'Ather 450X Gen 3',
-      serviceType: 'PORTABLE_CHARGER',
-      location: '100 Feet Rd, Indiranagar',
-      assignedHelper: 'Ramesh Kumar (QuickEV Assist)',
-      status: 'EN_ROUTE',
-      distanceKm: 1.4,
-      etaMinutes: 5,
-      startedAt: '12 mins ago'
-    },
-    {
-      id: 'mission_202',
-      riderName: 'Mohammed Zayd',
-      riderPhone: '+91 97412 33445',
-      vehicle: 'Hero Vida V1 Pro',
-      serviceType: 'BATTERY_SWAP',
-      location: 'Koramangala 5th Block',
-      assignedHelper: 'Sun Mobility / Quick Swap',
-      status: 'ARRIVED_ON_SCENE',
-      distanceKm: 0.1,
-      etaMinutes: 1,
-      startedAt: '22 mins ago'
-    }
-  ]);
+  // 2. Live SOS Emergency Missions Mission Control (dynamically populated from live requests)
+  const [liveMissions, setLiveMissions] = useState([]);
+
+  useEffect(() => {
+    const fetchMissions = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/admin/missions`);
+        const data = await res.json();
+        if (data.success && Array.isArray(data.missions)) {
+          setLiveMissions(data.missions);
+        }
+      } catch (e) {}
+    };
+    fetchMissions();
+    const interval = setInterval(fetchMissions, 6000);
+    return () => clearInterval(interval);
+  }, []);
 
   // 3. Moderation complaints & refund queue (P0: Complaint handling, Refund workflow)
   const [complaintQueue, setComplaintQueue] = useState([

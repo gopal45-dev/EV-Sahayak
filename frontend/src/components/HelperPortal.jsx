@@ -626,7 +626,7 @@ export default function HelperPortal({ helpers = [], onRegisterHelper, onToggleS
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Ramesh Kumar (QuickEV Assist)"
+                placeholder="e.g. Kiran Reddy (QuickEV Assist)"
                 required
                 className="input-pro"
               />

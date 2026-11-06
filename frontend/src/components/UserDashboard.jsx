@@ -6,6 +6,7 @@ import {
   Activity, Cpu, Wrench, Search, Check
 } from 'lucide-react';
 import { translations } from '../translations';
+import { API_BASE_URL } from '../config/api';
 
 const ThreeVisualizer = lazy(() => import('./ThreeVisualizer'));
 
@@ -81,7 +82,7 @@ export default function UserDashboard({
     if (!code) return;
     setDtcLoading(true);
     try {
-      const res = await fetch(`/api/features/dtc/${encodeURIComponent(code)}`);
+      const res = await fetch(`${API_BASE_URL}/api/features/dtc/${encodeURIComponent(code)}`);
       const data = await res.json();
       if (data.success) {
         setDtcResult(data);

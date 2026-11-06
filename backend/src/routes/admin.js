@@ -10,7 +10,7 @@ const router = express.Router();
 let subscriptions = [
   {
     id: 'sub_rzp_994101',
-    subscriberName: 'Gopal Gupta (Admin)',
+    subscriberName: 'Gopal Gupta',
     email: 'guptagopaldilipd@gmail.com',
     phone: '98451 22345',
     planType: 'MONTHLY_PRO',
@@ -27,6 +27,38 @@ let subscriptions = [
 // Live SOS emergency missions (starts empty; populated when riders request rescues)
 let liveMissions = [];
 
+// POST /api/admin/login - Secure Server-Side Admin Authentication
+router.post('/login', (req, res) => {
+  const { email, password } = req.body;
+  const adminEmail = (process.env.ADMIN_EMAIL || 'guptagopaldilipd@gmail.com').toLowerCase();
+  const adminPass = process.env.ADMIN_PASSWORD;
+
+  if (!adminPass) {
+    return res.status(500).json({ success: false, message: 'Admin authentication is not configured on server.' });
+  }
+
+  const enteredEmail = (email || '').trim().toLowerCase();
+  const validEmails = [adminEmail, 'admin@evsahayak.com', 'gopal gupta'];
+
+  if (validEmails.includes(enteredEmail) && (password || '').trim() === adminPass) {
+    return res.json({
+      success: true,
+      message: 'Administrator authentication successful',
+      admin: {
+        name: process.env.ADMIN_NAME || 'Gopal Gupta',
+        email: adminEmail,
+        role: 'ADMIN',
+        location: { lat: 12.9716, lng: 77.5946, address: 'Bengaluru Central Command' }
+      }
+    });
+  }
+
+  return res.status(401).json({
+    success: false,
+    message: 'Invalid Administrator credentials. Access denied.'
+  });
+});
+
 // GET /api/admin/overview - Extended Admin stats and financial metrics
 router.get('/overview', async (req, res) => {
   try {
@@ -34,6 +66,8 @@ router.get('/overview', async (req, res) => {
     const activeSubs = subscriptions.filter(s => s.status === 'ACTIVE');
     const monthlyRecurringRevenue = activeSubs.reduce((acc, s) => acc + (s.planType === 'ANNUAL_PRO' ? Math.round(s.amount / 12) : s.amount), 0);
     const totalSubRevenue = subscriptions.reduce((acc, s) => acc + s.amount, 0);
+
+    const activeMissionsCount = liveMissions.length + helpRequests.filter(r => r.status === 'ASSIGNED' || r.status === 'CONTACT_UNLOCKED' || r.status === 'RESCUE_IN_PROGRESS').length;
 
     const stats = {
       totalStations: allStations.length,
@@ -43,7 +77,7 @@ router.get('/overview', async (req, res) => {
       totalHelpers: providers.length,
       availableHelpers: providers.filter(p => p.availabilityStatus === 'AVAILABLE').length,
       totalHelpRequests: helpRequests.length,
-      activeLiveMissions: liveMissions.length,
+      activeLiveMissions: activeMissionsCount,
       completedUnlocks: contactUnlocks.length,
       unlockRevenueInr: contactUnlocks.length * 19,
       helperAuditRevenueInr: providers.length * 49,
@@ -79,7 +113,24 @@ router.post('/subscriptions/cancel/:id', (req, res) => {
 
 // GET /api/admin/missions - Live emergency dispatch mission control
 router.get('/missions', (req, res) => {
-  res.json({ success: true, missions: liveMissions });
+  const assignedFromRequests = helpRequests
+    .filter(r => r.status === 'ASSIGNED' || r.status === 'CONTACT_UNLOCKED' || r.status === 'RESCUE_IN_PROGRESS')
+    .map(r => ({
+      id: r.id,
+      riderName: r.userName || 'Stranded Rider',
+      riderPhone: r.userPhone || '+91 99014 43900',
+      vehicle: `${r.vehicle?.brand || ''} ${r.vehicle?.modelName || ''}`.trim(),
+      serviceType: r.requestedService,
+      location: r.locationAddress,
+      assignedHelper: r.assignedProviderName || 'Assigned Rescuer',
+      status: 'EN_ROUTE',
+      distanceKm: r.candidateResponses?.[0]?.distanceKm || 1.8,
+      etaMinutes: r.candidateResponses?.[0]?.etaMinutes || 8,
+      startedAt: 'Active Now'
+    }));
+
+  const allMissions = [...liveMissions, ...assignedFromRequests];
+  res.json({ success: true, missions: allMissions });
 });
 
 // POST /api/admin/missions/resolve/:id - Mark an active emergency mission resolved

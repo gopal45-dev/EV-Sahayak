@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Zap, ShieldCheck, User, Bike, Lock, Mail, Phone, ArrowRight, MapPin, Loader2, AlertCircle } from 'lucide-react';
+import { API_BASE_URL } from '../config/api';
 
 export default function LoginPage({ onLoginSuccess, theme }) {
   const isHoneybee = theme !== 'obsidian' && !(typeof document !== 'undefined' && document.body.classList.contains('theme-obsidian'));
@@ -28,21 +29,25 @@ export default function LoginPage({ onLoginSuccess, theme }) {
     setErrorMessage('');
   };
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setErrorMessage('');
 
     if (loginType === 'ADMIN') {
-      // Strict Admin check per user instructions
-      if (email.trim() === 'guptagopaldilipd@gmail.com' && password === 'guptagopal999') {
-        onLoginSuccess({
-          name: 'Gopal Gupta (Admin)',
-          email: 'guptagopaldilipd@gmail.com',
-          role: 'ADMIN',
-          location: { lat: 12.9716, lng: 77.5946, address: 'Bengaluru Central Command' }
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/admin/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email.trim(), password: password.trim() })
         });
-      } else {
-        setErrorMessage('Invalid Administrator credentials. Only guptagopaldilipd@gmail.com is authorized.');
+        const data = await res.json();
+        if (data.success && data.admin) {
+          onLoginSuccess(data.admin);
+        } else {
+          setErrorMessage(data.message || 'Invalid Administrator credentials.');
+        }
+      } catch (err) {
+        setErrorMessage('Administrator authentication service unreachable. Please ensure the server is running.');
       }
       return;
     }

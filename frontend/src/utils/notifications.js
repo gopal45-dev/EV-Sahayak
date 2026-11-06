@@ -75,7 +75,7 @@ export const notifyHelperOfIncomingRescue = ({
 
 // Dispatched to the rider when a helper accepts and starts dispatch
 export const notifyRiderOfHelperEnRoute = ({
-  helperName = 'Ramesh Kumar',
+  helperName = 'EV Sahayak Helper',
   etaMinutes = 6,
   distanceKm = 1.8
 }) => {
