@@ -5,6 +5,7 @@ import {
   Database, RefreshCw, Globe
 } from 'lucide-react';
 import InteractiveMap from './InteractiveMap';
+import { API_BASE_URL } from '../config/api';
 
 export default function StationFinder({ stations = [], onReportStation, userVehicles = [], theme = 'honeybee' }) {
   const isHoneybee = theme !== 'obsidian';
@@ -26,7 +27,7 @@ export default function StationFinder({ stations = [], onReportStation, userVehi
   });
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/features/tariffs')
+    fetch(`${API_BASE_URL}/api/features/tariffs`)
       .then(r => r.json())
       .then(data => {
         if (data.success) {
@@ -116,7 +117,7 @@ export default function StationFinder({ stations = [], onReportStation, userVehi
     setIsSyncingLiveDB(true);
     setSyncMessage('Fetching live verified EV charging stations from API...');
     try {
-      const res = await fetch('http://localhost:5000/api/stations/fetch-live', {
+      const res = await fetch(`${API_BASE_URL}/api/stations/fetch-live`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ radiusKm: 35, limit: 30 })

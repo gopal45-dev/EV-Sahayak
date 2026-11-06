@@ -2,6 +2,8 @@ import express from 'express';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import mongoose from 'mongoose';
+import { Provider } from '../models/Provider.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -132,6 +134,12 @@ router.post('/register', (req, res) => {
 
   providers.push(newProvider);
   saveProvidersToDisk();
+
+  if (mongoose.connection.readyState === 1) {
+    try {
+      Provider.create(newProvider).catch(err => console.warn('Provider Mongo save note:', err.message));
+    } catch (e) {}
+  }
 
   res.status(201).json({ 
     success: true, 

@@ -10,6 +10,7 @@ import {
   notifyHelperOfIncomingRescue, 
   notifyRiderOfHelperEnRoute 
 } from '../utils/notifications';
+import { API_BASE_URL } from '../config/api';
 
 export default function EmergencyAssistance({ vehicles = [], onUnlockContact, currentUser, onNavigateToGarage, theme = 'honeybee' }) {
   const isHoneybee = theme !== 'obsidian';
@@ -178,7 +179,7 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
     });
 
     try {
-      const res = await fetch('http://localhost:5000/api/requests', {
+      const res = await fetch(`${API_BASE_URL}/api/requests`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -222,7 +223,7 @@ export default function EmergencyAssistance({ vehicles = [], onUnlockContact, cu
     setShowRazorpay(false);
 
     try {
-      const res = await fetch('http://localhost:5000/api/unlock', {
+      const res = await fetch(`${API_BASE_URL}/api/unlock`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

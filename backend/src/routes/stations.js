@@ -5,6 +5,8 @@ import {
   upsertStations, 
   addStation, 
   reportStation, 
+  updateStationStatus,
+  deleteStation,
   getDatabaseStatus 
 } from '../services/stationDB.js';
 import { fetchLiveStations } from '../services/stationFetchService.js';
@@ -139,6 +141,36 @@ router.post('/suggest', async (req, res) => {
       message: 'Charging point submitted. Pending community verification.',
       station: newStation
     });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// PATCH /api/stations/:id/status - Update station verification/operational status (Admin)
+router.patch('/:id/status', async (req, res) => {
+  try {
+    const { status } = req.body;
+    if (!status) {
+      return res.status(400).json({ success: false, message: 'Status is required' });
+    }
+    const updated = await updateStationStatus(req.params.id, status);
+    if (!updated) {
+      return res.status(404).json({ success: false, message: 'Station not found' });
+    }
+    res.json({ success: true, message: `Station status updated to ${status}`, station: updated });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// DELETE /api/stations/:id - Reject or remove a station (Admin)
+router.delete('/:id', async (req, res) => {
+  try {
+    const removed = await deleteStation(req.params.id);
+    if (!removed) {
+      return res.status(404).json({ success: false, message: 'Station not found' });
+    }
+    res.json({ success: true, message: `Station removed successfully`, station: removed });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

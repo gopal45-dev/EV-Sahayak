@@ -4,6 +4,7 @@ import {
   FileText, CheckCircle, RefreshCw, AlertTriangle, Check, X, ShieldAlert,
   CreditCard, Sparkles, Navigation, Clock, Search, ArrowRight, UserCheck, Wrench, Eye
 } from 'lucide-react';
+import { API_BASE_URL } from '../config/api';
 
 export default function AdminWorkspace({ adminUser, onLogout, stations = [], helpers = [], onSwitchToRider, theme = 'honeybee' }) {
   const isHoneybee = theme !== 'obsidian';
@@ -21,7 +22,7 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
     setIsSyncingStations(true);
     setSyncStatusText('Fetching stations from Live API...');
     try {
-      const res = await fetch('http://localhost:5000/api/stations/fetch-live', {
+      const res = await fetch(`${API_BASE_URL}/api/stations/fetch-live`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ radiusKm: 35, limit: 30 })
@@ -29,7 +30,7 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
       const data = await res.json();
       if (data.success) {
         setSyncStatusText(`✓ Synced ${data.fetchedCount} live stations to Database (${data.totalInDb} in DB).`);
-        const fetchRes = await fetch('http://localhost:5000/api/stations');
+        const fetchRes = await fetch(`${API_BASE_URL}/api/stations`);
         const stData = await fetchRes.json();
         if (stData.success && stData.stations) {
           setStationList(stData.stations);
@@ -171,8 +172,27 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
   const activeHelpersCount = helperList.filter(h => h.availabilityStatus === 'AVAILABLE').length;
 
   // Station Status Handlers
-  const handleSetStationStatus = (id, newStatus) => {
+  const handleSetStationStatus = async (id, newStatus) => {
+    try {
+      await fetch(`${API_BASE_URL}/api/stations/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+    } catch (e) {
+      console.warn('Station status sync error:', e);
+    }
     setStationList(prev => prev.map(s => s.id === id ? { ...s, verificationStatus: newStatus } : s));
+  };
+
+  const handleDeleteStation = async (id) => {
+    if (!window.confirm('Are you sure you want to reject and remove this station submission?')) return;
+    try {
+      await fetch(`${API_BASE_URL}/api/stations/${id}`, { method: 'DELETE' });
+    } catch (e) {
+      console.warn('Station delete sync error:', e);
+    }
+    setStationList(prev => prev.filter(s => s.id !== id));
   };
 
   // Helper Verification Level Handler
@@ -709,7 +729,16 @@ export default function AdminWorkspace({ adminUser, onLogout, stations = [], hel
                           className="btn-primary"
                           style={{ padding: '4px 8px', fontSize: '0.72rem' }}
                         >
-                          Verify
+                          Accept
+                        </button>
+                      )}
+                      {st.verificationStatus === 'PENDING' && (
+                        <button
+                          onClick={() => handleDeleteStation(st.id)}
+                          className="btn-secondary"
+                          style={{ padding: '4px 8px', fontSize: '0.72rem', color: '#ef4444' }}
+                        >
+                          Reject
                         </button>
                       )}
                       {st.verificationStatus !== 'MAINTENANCE' && (

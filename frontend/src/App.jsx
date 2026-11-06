@@ -11,6 +11,7 @@ import ProfilePage from './components/ProfilePage';
 import CommandPalette from './components/CommandPalette';
 import ThreeBackground from './components/ThreeBackground';
 import { initialStations } from '../../backend/src/seed/mockDatabase.js';
+import { API_BASE_URL } from './config/api';
 
 const SESSION_STORAGE_KEY = 'ev_sahayak_user_session';
 const SESSION_EXPIRY_DAYS = 7;
@@ -120,9 +121,9 @@ export default function App() {
     const fetchBackendData = async () => {
       try {
         const [stRes, provRes, vehRes] = await Promise.allSettled([
-          fetch('http://localhost:5000/api/stations').then(r => r.json()),
-          fetch('http://localhost:5000/api/providers').then(r => r.json()),
-          fetch('http://localhost:5000/api/vehicles').then(r => r.json())
+          fetch(`${API_BASE_URL}/api/stations`).then(r => r.json()),
+          fetch(`${API_BASE_URL}/api/providers`).then(r => r.json()),
+          fetch(`${API_BASE_URL}/api/vehicles`).then(r => r.json())
         ]);
 
         if (stRes.status === 'fulfilled' && stRes.value?.stations) {
@@ -220,7 +221,7 @@ export default function App() {
 
   const handleReportStation = async (stationId, issueType, notes) => {
     try {
-      await fetch(`http://localhost:5000/api/stations/${stationId}/report`, {
+      await fetch(`${API_BASE_URL}/api/stations/${stationId}/report`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ issueType, notes, reportedBy: currentUser?.name || 'Rider' })
@@ -233,7 +234,7 @@ export default function App() {
 
   const handleSuggestStation = async (stationData) => {
     try {
-      const res = await fetch('http://localhost:5000/api/stations/suggest', {
+      const res = await fetch(`${API_BASE_URL}/api/stations/suggest`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(stationData)
@@ -264,7 +265,7 @@ export default function App() {
 
   const handleRegisterHelper = async (helperData) => {
     try {
-      const res = await fetch('http://localhost:5000/api/providers/register', {
+      const res = await fetch(`${API_BASE_URL}/api/providers/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(helperData)
@@ -310,7 +311,7 @@ export default function App() {
   const handleAddVehicle = async (newVeh) => {
     let savedVeh = null;
     try {
-      const res = await fetch('http://localhost:5000/api/vehicles', {
+      const res = await fetch(`${API_BASE_URL}/api/vehicles`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newVeh)
@@ -334,7 +335,7 @@ export default function App() {
 
   const handleRemoveVehicle = async (id) => {
     try {
-      await fetch(`http://localhost:5000/api/vehicles/${id}`, { method: 'DELETE' });
+      await fetch(`${API_BASE_URL}/api/vehicles/${id}`, { method: 'DELETE' });
     } catch (err) {
       console.warn('API vehicle delete fallback:', err);
     }

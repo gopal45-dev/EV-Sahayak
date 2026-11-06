@@ -1,5 +1,5 @@
 import express from 'express';
-import { getStations } from '../services/stationDB.js';
+import { getStations, updateStationStatus, deleteStation } from '../services/stationDB.js';
 import { providers } from './providers.js';
 import { helpRequests } from './requests.js';
 import { contactUnlocks } from './unlock.js';
@@ -119,17 +119,26 @@ router.get('/triages', async (req, res) => {
 // POST /api/admin/triages/approve/:id - Approve a station or clear reports
 router.post('/triages/approve/:id', async (req, res) => {
   try {
-    const allStations = await getStations();
-    const station = allStations.find(s => s.id === req.params.id);
+    const station = await updateStationStatus(req.params.id, 'VERIFIED');
     if (!station) {
       return res.status(404).json({ success: false, message: 'Station triage entry not found' });
     }
 
-    station.verificationStatus = 'VERIFIED';
-    station.reportsCount = 0;
-    station.lastVerifiedAt = new Date().toISOString();
-
     res.json({ success: true, message: `Station "${station.name}" approved and marked VERIFIED.`, station });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// POST /api/admin/triages/reject/:id - Reject / Delete an invalid station submission
+router.post('/triages/reject/:id', async (req, res) => {
+  try {
+    const station = await deleteStation(req.params.id);
+    if (!station) {
+      return res.status(404).json({ success: false, message: 'Station triage entry not found' });
+    }
+
+    res.json({ success: true, message: `Station "${station.name}" rejected and removed.`, station });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

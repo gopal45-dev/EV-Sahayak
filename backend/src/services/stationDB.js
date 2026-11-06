@@ -200,6 +200,72 @@ export const addStation = async (stationData) => {
 };
 
 /**
+ * Update station verification or operational status (VERIFIED, PENDING, MAINTENANCE)
+ */
+export const updateStationStatus = async (stationId, status) => {
+  const station = cachedStations.find(s => s.id === stationId || s._id === stationId);
+  if (station) {
+    station.verificationStatus = status;
+    if (status === 'VERIFIED') {
+      station.reportsCount = 0;
+      station.lastVerifiedAt = new Date().toISOString();
+    }
+  }
+
+  if (isMongoActive()) {
+    try {
+      const updateData = { 
+        verificationStatus: status,
+        ...(status === 'VERIFIED' ? { reportsCount: 0, lastVerifiedAt: new Date() } : {})
+      };
+
+      if (mongoose.Types.ObjectId.isValid(stationId)) {
+        await Station.findByIdAndUpdate(stationId, updateData);
+      } else {
+        await Station.findOneAndUpdate({ $or: [{ id: stationId }, { name: station?.name }] }, updateData);
+      }
+    } catch (e) {
+      console.warn('MongoDB updateStationStatus error:', e.message);
+    }
+  }
+
+  try {
+    fs.writeFileSync(STATIONS_FILE, JSON.stringify(cachedStations, null, 2), 'utf-8');
+  } catch (err) {}
+
+  return station;
+};
+
+/**
+ * Delete / Reject a station (e.g. invalid community request)
+ */
+export const deleteStation = async (stationId) => {
+  const index = cachedStations.findIndex(s => s.id === stationId || s._id === stationId);
+  let removed = null;
+  if (index !== -1) {
+    removed = cachedStations.splice(index, 1)[0];
+  }
+
+  if (isMongoActive()) {
+    try {
+      if (mongoose.Types.ObjectId.isValid(stationId)) {
+        await Station.findByIdAndDelete(stationId);
+      } else {
+        await Station.findOneAndDelete({ $or: [{ id: stationId }, { name: removed?.name }] });
+      }
+    } catch (e) {
+      console.warn('MongoDB deleteStation error:', e.message);
+    }
+  }
+
+  try {
+    fs.writeFileSync(STATIONS_FILE, JSON.stringify(cachedStations, null, 2), 'utf-8');
+  } catch (err) {}
+
+  return removed;
+};
+
+/**
  * Report issue for a station
  */
 export const reportStation = async (stationId, reportData) => {

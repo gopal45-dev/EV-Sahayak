@@ -5,6 +5,7 @@ import {
   TrendingUp, Activity, Clock, Check, X, BellRing, DollarSign, Award 
 } from 'lucide-react';
 import RazorpayModal from './RazorpayModal';
+import { API_BASE_URL } from '../config/api';
 
 export default function HelperPortal({ helpers = [], onRegisterHelper, onToggleStatus, currentUser, theme = 'honeybee' }) {
   const isHoneybee = theme !== 'obsidian';
@@ -42,7 +43,7 @@ export default function HelperPortal({ helpers = [], onRegisterHelper, onToggleS
   useEffect(() => {
     const fetchLiveRequests = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/requests');
+        const res = await fetch(`${API_BASE_URL}/api/requests`);
         const data = await res.json();
         if (data.success && Array.isArray(data.requests)) {
           setIncomingRequests(data.requests);
@@ -60,7 +61,7 @@ export default function HelperPortal({ helpers = [], onRegisterHelper, onToggleS
   const handleRequestResponse = async (requestId, action) => {
     if (action === 'ACCEPT') {
       try {
-        const res = await fetch(`http://localhost:5000/api/requests/${requestId}/accept`, {
+        const res = await fetch(`${API_BASE_URL}/api/requests/${requestId}/accept`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -118,7 +119,7 @@ export default function HelperPortal({ helpers = [], onRegisterHelper, onToggleS
     } else {
       // DECLINE ACTION
       try {
-        await fetch(`http://localhost:5000/api/requests/${requestId}/decline`, {
+        await fetch(`${API_BASE_URL}/api/requests/${requestId}/decline`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ providerId: myHelperProfile?.id || 'prov_my_account' })
